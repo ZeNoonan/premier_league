@@ -28,6 +28,73 @@ def to_excel(df):
     processed_data = output.getvalue()
     return processed_data
 
+with st.beta_expander('Mins'):
+
+    # @st.cache
+    def prep_base_data(url_csv, pick):
+        url_csv = pd.read_csv(url_csv).rename(columns = {'id':'player_id','element_type':'Position','assists':'assists_season',
+        'bonus':'bonus_season','bps':'bps_season','clean_sheets':'clean_sheets_season','creativity':'creativity_season','goals_conceded':'goals_conceded_season',
+        'goals_scored':'goals_scored_season','ict_index':'ict_index_season','influence':'influence_season','minutes':'minutes_season',
+        'saves':'saves_season','threat':'threat_season','transfers_in':'transfers_in_season','transfers_out':'transfers_out_season'})
+        url_csv['Position'] = url_csv['Position'].map({1: 'GK', 2: 'DF', 3:'MD', 4:'FW'})
+        url_csv['full_name'] = (url_csv['first_name']+'_'+url_csv['second_name']).str.lower()
+        pick_data = pick.rename(columns = {'total_points':'week_points'})
+        return pd.merge(url_csv,pick_data, on='player_id',how ='outer')
+
+    # @st.cache(suppress_st_warning=True)
+    def data_2022_team_names(file):
+        file['team'] = file['team'].map({1: 'Arsenal', 2: 'Aston_Villa', 3: 'Brentford', 4:'Brighton', 5:'Burnley',6:'Chelsea',7:'Crystal_Palace',8:'Everton',
+        9:'Leicester',10:'Leeds_Utd',11:'Liverpool',12:'Man_City',13:'Man_Utd',14:'Newcastle',15:'Norwich',16:'Southampton',17:'Spurs',
+        18:'Watford',19:'West_Ham',20:'Wolves'})
+        return file
+
+    url2022 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2021-22/players_raw.csv'
+    df_week_data_raw=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/raw_data_2022.csv')
+    odds_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/goalscorer_odds.xlsx')
+
+    data_2022 = (data_2022_team_names( (prep_base_data(url2022, df_week_data_raw)).rename(columns = {'team_x':'team'})))
+
+    # @st.cache(suppress_st_warning=True)
+    def column_calcs(df):
+        df = df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True])
+        df['Price'] =df['value'] / 10
+        df['Game_1'] = np.where((df['minutes'] > 0.5), 1, 0)
+        df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
+        df_calc=df[df['Game_1']>0].copy()
+        df_calc['4_games_rolling_mins']=df_calc.groupby(['full_name'])['minutes'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df=pd.merge(df,df_calc,how='outer').sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True])
+        cols_to_move = ['full_name','week','year','Price' ,'minutes','Clean_Pts','Game_1','week_points','4_games_rolling_mins','team']
+        cols = cols_to_move + [col for col in df if col not in cols_to_move]
+        df=df[cols]
+        df['4_games_rolling_mins']=df.groupby('full_name')['4_games_rolling_mins'].ffill()
+        return df
+
+    data_2022=column_calcs(data_2022).copy()
+    # st.write('data 2022', data_2022)
+    cols_to_move = ['full_name','week','year','Price' ,'minutes','Clean_Pts','Game_1','week_points','4_games_rolling_mins']
+    cols = cols_to_move + [col for col in data_2022 if col not in cols_to_move]
+    data_2022=data_2022[cols]
+
+    player_names_pick=data_2022['full_name'].unique()
+    names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=0)
+    player_selected_detail_by_week = data_2022[data_2022['full_name']==names_selected_pick]
+    st.write( player_selected_detail_by_week.sort_values(by=['year','week'],ascending=[False,False]) )
+
+    week = 9
+    df_1= data_2022 [ (data_2022['week']==week) ].sort_values(by='Price',ascending=False)
+    df_1=df_1.loc[:,['full_name','week','year','Price','4_games_rolling_mins','team']]
+    # st.write('odds',odds_data)
+    df_1=pd.merge(df_1,odds_data,on=['full_name','team'],how='outer')
+    # get rid of any blanks in odds data so that ranking is not upset
+    df_1=df_1.dropna(subset=['odds_betfair'])
+    df_1['odds_betfair_rank']=df_1['odds_betfair'].rank(method='dense', ascending=True)
+    df_1['rolling_mins_rank']=df_1['4_games_rolling_mins'].rank(method='dense', ascending=False)
+    st.write('data',df_1.sort_values(by='odds_betfair',ascending=True))
+    
+    # st.markdown(get_table_download_link(df_1), unsafe_allow_html=True)
+    
+
+
 # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
 # dfa[0].to_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
 df=pd.read_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
