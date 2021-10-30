@@ -91,31 +91,63 @@ with st.beta_expander('Mins'):
     df_1['rolling_mins_rank']=df_1['4_games_rolling_mins'].rank(method='dense', ascending=False)
     st.write('data',df_1.sort_values(by='odds_betfair',ascending=True))
     
+    
+    def team_names(file):
+        file['team'] = file['team'].map({'Arsenal': 'Arsenal', 'Aston Villa': 'Aston_Villa', 'Brentford': 'Brentford', 'Brighton':'Brighton',
+         'Burnley':'Burnley','Chelsea':'Chelsea','Crystal Palace':'Crystal_Palace','Everton':'Everton',
+        'Leicester City':'Leicester','Leeds United':'Leeds_Utd','Liverpool':'Liverpool','Manchester City':'Man_City',
+        'Manchester Utd':'Man_Utd','Newcastle Utd':'Newcastle','Norwich City':'Norwich','Southampton':'Southampton','Tottenham':'Spurs',
+        'Watford':'Watford','West Ham':'West_Ham','Wolves':'Wolves'})
+        return file
+
+    team_xg = team_names(pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/team_xg.csv'))
+    # team_xg = (pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/team_xg.csv'))
+    # st.write('team xg', team_xg)
     # st.markdown(get_table_download_link(df_1), unsafe_allow_html=True)
     
 
+with st.beta_expander('df'):
+    # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
+    # dfa[0].to_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
+    df=pd.read_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
+    df=df.dropna(subset=['Wk'])
+    # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
-# dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-# dfa[0].to_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
-df=pd.read_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
-df=df.dropna(subset=['Wk'])
-# st.markdown(get_table_download_link(df), unsafe_allow_html=True)
+    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx')
 
-odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx')
+    merged_df = pd.merge(df,odds,on=['Wk','Day','Date','Home','xG','Score','xG.1','Away'],how='outer')
+    # https://stackoverflow.com/questions/35552874/get-first-letter-of-a-string-from-column
+    merged_df['Home Points'] = [str(x)[0] for x in merged_df['Score']]
+    merged_df['Away Points'] = [str(x)[2] for x in merged_df['Score']]
+    merged_df['home_spread']=-merged_df['Spread']
+    merged_df['away_spread']=merged_df['Spread']
+    # merged_df=team_names(merged_df)
+    home_spread=merged_df.loc[:,['Wk','Home','home_spread']].rename(columns={'Wk':'week','Home':'team','home_spread':'spread'})
+    # st.write('home spread', home_spread)
+    away_spread=merged_df.loc[:,['Wk','Away','away_spread']].rename(columns={'Wk':'week','Away':'team','away_spread':'spread'})
+    combined_spread = pd.concat([home_spread,away_spread],axis=0)
+    combined_spread=team_names(combined_spread)
+    st.write('comb', combined_spread.sort_values(by='week',ascending=True))
+    df_1['week']=df_1['week']+1
+    df_update = pd.merge(df_1, combined_spread,on=['week','team'], how='left')
+    df_update['spread_rank']=df_update['spread'].rank(method='dense', ascending=True)
+    col_list=['spread_rank','odds_betfair_rank','rolling_mins_rank']
+    df_update['total_rank']=df_update[col_list].sum(axis=1)
+    # df_update = pd.merge(df_update, away_spread,on=['week','team'], how='left')
+    cols_to_move = ['full_name','week','spread','team','total_rank','year','Price' ,'4_games_rolling_mins']
+    cols = cols_to_move + [col for col in df_update if col not in cols_to_move]
+    df_update=df_update[cols].sort_values(by='total_rank').reset_index().drop('index',axis=1)
+    st.write('merged', df_update)
 
-merged_df = pd.merge(df,odds,on=['Wk','Day','Date','Home','xG','Score','xG.1','Away'],how='outer')
-# https://stackoverflow.com/questions/35552874/get-first-letter-of-a-string-from-column
-merged_df['Home Points'] = [str(x)[0] for x in merged_df['Score']]
-merged_df['Away Points'] = [str(x)[2] for x in merged_df['Score']]
-# st.write('merged', merged_df)
+    goal_df = pd.read_html('https://www.pinnacle.com/en/soccer/england-premier-league/watford-vs-southampton/1420054427#player-props')
+    st.write(goal_df)
+    # team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx',sheet_name='Sheet2')
 
-team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx',sheet_name='Sheet2')
+    # st.write(team_names_id)
+    # st.write('merged', merged_df)
 
-st.write(team_names_id)
-st.write('merged', merged_df)
-
-# st.write(odds)
-# st.write(df)
+    # st.write(odds)
+    # st.write(df)
 
 
 
