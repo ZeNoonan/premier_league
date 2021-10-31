@@ -88,8 +88,11 @@ with st.beta_expander('Mins'):
     # get rid of any blanks in odds data so that ranking is not upset
     df_1=df_1.dropna(subset=['odds_betfair'])
     df_1['odds_betfair_rank']=df_1['odds_betfair'].rank(method='dense', ascending=True)
+    df_1['nan_pinnacle']=np.where(df_1['odds_pinnacle']>0.1,1,np.NaN)
+    # st.write('checking nan', df_1)
+    df_1['odds_pinnacle_rank']=df_1['odds_pinnacle'].rank(method='dense', ascending=True)
     df_1['rolling_mins_rank']=df_1['4_games_rolling_mins'].rank(method='dense', ascending=False)
-    st.write('data',df_1.sort_values(by='odds_betfair',ascending=True))
+    # st.write('data',df_1.sort_values(by='odds_betfair',ascending=True))
     
     
     def team_names(file):
@@ -127,20 +130,25 @@ with st.beta_expander('df'):
     away_spread=merged_df.loc[:,['Wk','Away','away_spread']].rename(columns={'Wk':'week','Away':'team','away_spread':'spread'})
     combined_spread = pd.concat([home_spread,away_spread],axis=0)
     combined_spread=team_names(combined_spread)
-    st.write('comb', combined_spread.sort_values(by='week',ascending=True))
+    # st.write('comb', combined_spread.sort_values(by='week',ascending=True))
     df_1['week']=df_1['week']+1
     df_update = pd.merge(df_1, combined_spread,on=['week','team'], how='left')
     df_update['spread_rank']=df_update['spread'].rank(method='dense', ascending=True)
     col_list=['spread_rank','odds_betfair_rank','rolling_mins_rank']
-    df_update['total_rank']=df_update[col_list].sum(axis=1)
+    col_list_1=['spread_rank','odds_pinnacle_rank','rolling_mins_rank']
+    df_update['total_betfair_rank']=df_update[col_list].sum(axis=1)
+    df_update['total_pinnacle_rank']=df_update[col_list_1].sum(axis=1)*df_update['nan_pinnacle']
+    # st.write(df_update)
+    df_update['factor_betfair_rank']=df_update['total_betfair_rank'].rank(method='dense', ascending=True)
+    df_update['factor_pinnacle_rank']=df_update['total_pinnacle_rank'].rank(method='dense', ascending=True)
     # df_update = pd.merge(df_update, away_spread,on=['week','team'], how='left')
-    cols_to_move = ['full_name','week','spread','team','total_rank','year','Price' ,'4_games_rolling_mins']
+    cols_to_move = ['full_name','week','spread','team','factor_pinnacle_rank','factor_betfair_rank','year','Price' ,'4_games_rolling_mins']
     cols = cols_to_move + [col for col in df_update if col not in cols_to_move]
-    df_update=df_update[cols].sort_values(by='total_rank').reset_index().drop('index',axis=1)
+    df_update=df_update[cols].sort_values(by='factor_pinnacle_rank').reset_index().drop('index',axis=1)
     st.write('merged', df_update)
 
-    goal_df = pd.read_html('https://www.pinnacle.com/en/soccer/england-premier-league/watford-vs-southampton/1420054427#player-props')
-    st.write(goal_df)
+    # goal_df = pd.read_html('https://www.pinnacle.com/en/soccer/england-premier-league/watford-vs-southampton/1420054427#player-props')
+    # st.write(goal_df)
     # team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx',sheet_name='Sheet2')
 
     # st.write(team_names_id)
