@@ -78,13 +78,20 @@ with st.beta_expander('Mins'):
     player_names_pick=data_2022['full_name'].unique()
     names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=0)
     player_selected_detail_by_week = data_2022[data_2022['full_name']==names_selected_pick]
+    st.write('what week is used here')
     st.write( player_selected_detail_by_week.sort_values(by=['year','week'],ascending=[False,False]) )
 
-    week = 9
-    df_1= data_2022 [ (data_2022['week']==week) ].sort_values(by='Price',ascending=False)
+    week_mins = 10
+    current_week=11
+    df_1= data_2022 [ (data_2022['week']==week_mins) ].sort_values(by='Price',ascending=False)
     df_1=df_1.loc[:,['full_name','week','year','Price','4_games_rolling_mins','team']]
-    # st.write('odds',odds_data)
-    df_1=pd.merge(df_1,odds_data,on=['full_name','team'],how='outer')
+    df_1['week']=week_mins+1
+    # st.write('mins fantasy check', df_1)
+    # st.write('odds check week',odds_data)
+    odds_data=odds_data[odds_data['week']==current_week]
+    # st.write('check after',odds_data)
+    df_1=pd.merge(df_1,odds_data,on=['full_name','team','week'],how='outer')
+    # st.write('checking df1', df_1)
     # get rid of any blanks in odds data so that ranking is not upset
     df_1=df_1.dropna(subset=['odds_betfair'])
     df_1['odds_betfair_rank']=df_1['odds_betfair'].rank(method='dense', ascending=True)
@@ -130,8 +137,9 @@ with st.beta_expander('df'):
     away_spread=merged_df.loc[:,['Wk','Away','away_spread']].rename(columns={'Wk':'week','Away':'team','away_spread':'spread'})
     combined_spread = pd.concat([home_spread,away_spread],axis=0)
     combined_spread=team_names(combined_spread)
-    # st.write('comb', combined_spread.sort_values(by='week',ascending=True))
-    df_1['week']=df_1['week']+1
+    # st.write('combined spread???', combined_spread.sort_values(by='week',ascending=True))
+    # st.write('to be merged with df1', df_1)
+    # df_1['week']=df_1['week']+1
     df_update = pd.merge(df_1, combined_spread,on=['week','team'], how='left')
     df_update['spread_rank']=df_update['spread'].rank(method='dense', ascending=False)
     col_list=['spread_rank','odds_betfair_rank','rolling_mins_rank']
