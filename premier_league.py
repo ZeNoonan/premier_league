@@ -153,8 +153,9 @@ with st.beta_expander('df'):
     df_update['factor_pinnacle_rank']=df_update['total_pinnacle_rank'].rank(method='dense', ascending=True)
     # df_update = pd.merge(df_update, away_spread,on=['week','team'], how='left')
     # df_update['log_rank']=np.log(df_update['spread_rank'])
-    cols_to_move = ['full_name','week','spread','team','total_betfair_rank','spread_rank','odds_pinnacle_rank','rolling_mins_rank','factor_pinnacle_rank',
-    'factor_betfair_rank','year','Price' ,'4_games_rolling_mins']
+    cols_to_move = ['full_name','week','spread','team','factor_pinnacle_rank','factor_betfair_rank','total_pinnacle_rank','total_betfair_rank',
+    'spread_rank','odds_pinnacle_rank','rolling_mins_rank',
+    'year','Price' ,'4_games_rolling_mins']
     cols = cols_to_move + [col for col in df_update if col not in cols_to_move]
     df_update=df_update[cols].sort_values(by=['factor_pinnacle_rank','total_betfair_rank']).reset_index().drop('index',axis=1)
     st.write('Results', df_update)
