@@ -82,8 +82,8 @@ with st.beta_expander('Mins'):
     st.write('what week is used here')
     st.write( player_selected_detail_by_week.sort_values(by=['year','week'],ascending=[False,False]) )
 
-    week_mins = 10
-    current_week=11
+    week_mins = 11
+    current_week=12
     df_1= data_2022 [ (data_2022['week']==week_mins) ].sort_values(by='Price',ascending=False)
     df_1=df_1.loc[:,['full_name','week','year','Price','4_games_rolling_mins','team']]
     df_1['week']=week_mins+1
@@ -156,6 +156,13 @@ with st.beta_expander('df'):
     cols_to_move = ['full_name','week','spread','team','factor_pinnacle_rank','factor_betfair_rank','total_pinnacle_rank','total_betfair_rank',
     'spread_rank','odds_pinnacle_rank','rolling_mins_rank',
     'year','Price' ,'4_games_rolling_mins']
+
+    cols_to_move = ['full_name','week','spread','team','factor_betfair_rank','total_betfair_rank',
+    'spread_rank','odds_betfair_rank','rolling_mins_rank','odds_betfair','4_games_rolling_mins',
+    'year','Price' ]
+
+
+
     cols = cols_to_move + [col for col in df_update if col not in cols_to_move]
     df_update=df_update[cols].sort_values(by=['factor_pinnacle_rank','total_betfair_rank']).reset_index().drop('index',axis=1)
     st.write('Results', df_update)
