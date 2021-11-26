@@ -82,8 +82,8 @@ with st.beta_expander('Mins'):
     st.write('what week is used here')
     st.write( player_selected_detail_by_week.sort_values(by=['year','week'],ascending=[False,False]) )
 
-    week_mins = 11
-    current_week=12
+    week_mins = 12
+    current_week=13
     df_1= data_2022 [ (data_2022['week']==week_mins) ].sort_values(by='Price',ascending=False)
     df_1=df_1.loc[:,['full_name','week','year','Price','4_games_rolling_mins','team']]
     df_1['week']=week_mins+1
@@ -165,7 +165,7 @@ with st.beta_expander('df'):
 
     cols = cols_to_move + [col for col in df_update if col not in cols_to_move]
     df_update=df_update[cols].sort_values(by=['factor_pinnacle_rank','total_betfair_rank']).reset_index().drop('index',axis=1)
-    st.write('Results', df_update)
+    st.write('Results', df_update.set_index('full_name'))
 
     # goal_df = pd.read_html('https://www.pinnacle.com/en/soccer/england-premier-league/watford-vs-southampton/1420054427#player-props')
     # st.write(goal_df)
