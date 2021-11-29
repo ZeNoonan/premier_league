@@ -81,6 +81,7 @@ with st.beta_expander('Mins'):
     data_2022=data_2022.loc[:,['full_name','week','selected','year','Price','4_games_rolling_mins','team']]
     data_2022['total_selected']=8679000
     data_2022['%_selected']=data_2022['selected'] / data_2022['total_selected']
+    
     player_selected_detail_by_week = data_2022[data_2022['full_name']==names_selected_pick]
     st.write('what week is used here')
     # player_selected_detail_by_week=player_selected_detail_by_week.loc[:,['full_name','week','selected','total_selected','year','Price','4_games_rolling_mins','team']]
@@ -158,13 +159,14 @@ with st.beta_expander('df'):
     df_update['factor_pinnacle_rank']=df_update['total_pinnacle_rank'].rank(method='dense', ascending=True)
     # df_update = pd.merge(df_update, away_spread,on=['week','team'], how='left')
     # df_update['log_rank']=np.log(df_update['spread_rank'])
-    cols_to_move = ['full_name','week','spread','team','factor_pinnacle_rank','factor_betfair_rank','total_pinnacle_rank','total_betfair_rank',
-    'spread_rank','odds_pinnacle_rank','rolling_mins_rank',
+    cols_to_move = ['full_name','week','spread','team','factor_pinnacle_rank','factor_betfair_rank','odds_pinnacle_rank','odds_betfair_rank',
+    'total_pinnacle_rank','total_betfair_rank',
+    'spread_rank','rolling_mins_rank',
     'year','Price' ,'4_games_rolling_mins']
 
-    cols_to_move = ['full_name','week','spread','team','factor_betfair_rank','total_betfair_rank',
-    'spread_rank','odds_betfair_rank','rolling_mins_rank','odds_betfair','4_games_rolling_mins',
-    'year','Price' ]
+    # cols_to_move = ['full_name','week','spread','team','factor_betfair_rank','total_betfair_rank',
+    # 'spread_rank','odds_betfair_rank','rolling_mins_rank','odds_betfair','4_games_rolling_mins',
+    # 'year','Price' ]
 
 
 
