@@ -88,8 +88,8 @@ with st.beta_expander('Mins'):
     
     st.write( player_selected_detail_by_week.sort_values(by=['year','week'],ascending=[False,False]) )
 
-    week_mins = 13
-    current_week=14
+    week_mins = 14
+    current_week=15
     df_1= data_2022 [ (data_2022['week']==week_mins) ].sort_values(by='Price',ascending=False)
     df_1=df_1.loc[:,['full_name','week','year','Price','4_games_rolling_mins','team']]
     df_1['week']=week_mins+1
