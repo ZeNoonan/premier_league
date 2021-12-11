@@ -78,7 +78,7 @@ with st.beta_expander('Mins'):
 
     player_names_pick=data_2022['full_name'].unique()
     names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=0)
-    data_2022=data_2022.loc[:,['full_name','week','selected','year','Price','4_games_rolling_mins','team']]
+    data_2022=data_2022.loc[:,['full_name','week','selected','year','Price','4_games_rolling_mins','minutes','team']]
     data_2022['total_selected']=8679000
     data_2022['%_selected']=data_2022['selected'] / data_2022['total_selected']
     
@@ -88,8 +88,8 @@ with st.beta_expander('Mins'):
     
     st.write( player_selected_detail_by_week.sort_values(by=['year','week'],ascending=[False,False]) )
 
-    week_mins = 14
-    current_week=15
+    week_mins = 15
+    current_week=16
     df_1= data_2022 [ (data_2022['week']==week_mins) ].sort_values(by='Price',ascending=False)
     df_1=df_1.loc[:,['full_name','week','year','Price','4_games_rolling_mins','team']]
     df_1['week']=week_mins+1
