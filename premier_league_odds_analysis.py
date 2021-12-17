@@ -71,8 +71,8 @@ with st.beta_expander('df'):
     # st.write('check for unique match id', test_df)
     matrix_df['at_home'] = 1
     matrix_df['at_away'] = -1
-    matrix_df['home_pts_adv'] = -3
-    matrix_df['away_pts_adv'] = 3
+    matrix_df['home_pts_adv'] = -0.25
+    matrix_df['away_pts_adv'] = 0.25
 
     test_df_1=matrix_df.loc[:,['unique_match_id','Week','Home ID','Away ID','at_home','at_away','home_spread','away_spread','home_pts_adv','away_pts_adv']].copy()
     test_df_home=test_df_1.loc[:,['Week','Home ID','at_home','home_spread','home_pts_adv']].rename(columns={'Home ID':'ID','at_home':'home','home_spread':'spread','home_pts_adv':'home_pts_adv'}).copy()
@@ -173,6 +173,36 @@ updated_df['spread_working']=updated_df['home_power']-updated_df['away_power']+u
 updated_df['power_pick'] = np.where(updated_df['spread_working'] > 0, 1,
 np.where(updated_df['spread_working'] < 0,-1,0))
 
+def season_cover_workings(data,home,away,name,week_start):
+    season_cover_df=data[data['Week']>week_start].copy()
+    # season_cover_df=(data.set_index('Week').loc[week_start:,:]).reset_index()
+    home_cover_df = (season_cover_df.loc[:,['Week','Date','Home ID',home]]).rename(columns={'Home ID':'ID',home:name})
+    # st.write('checking home turnover section', home_cover_df[home_cover_df['ID']==0])
+    away_cover_df = (season_cover_df.loc[:,['Week','Date','Away ID',away]]).rename(columns={'Away ID':'ID',away:name})
+    # st.write('checking away turnover section', away_cover_df[away_cover_df['ID']==0])
+    season_cover=pd.concat([home_cover_df,away_cover_df],ignore_index=True)
+    # season_cover_df = pd.melt(season_cover_df,id_vars=['Week', 'home_cover'],value_vars=['Home ID', 'Away ID']).set_index('Week').rename(columns={'value':'ID'}).\
+    # drop('variable',axis=1).reset_index().sort_values(by=['Week','ID'],ascending=True)
+    return season_cover.sort_values(by=['Week','Date','ID'],ascending=['True','True','True'])
+
+def season_cover_2(season_cover_df,column_name):    
+    # https://stackoverflow.com/questions/54993050/pandas-groupby-shift-and-cumulative-sum
+    # season_cover_df[column_name] = season_cover_df.groupby (['ID'])[column_name].transform(lambda x: x.cumsum().shift())
+    # THE ABOVE DIDN'T WORK IN 2020 PRO FOOTBALL BUT DID WORK IN 2019 DO NOT DELETE FOR INFO PURPOSES
+    season_cover_df[column_name] = season_cover_df.groupby (['ID'])[column_name].apply(lambda x: x.cumsum().shift())
+    season_cover_df=season_cover_df.reset_index().sort_values(by=['Week','Date','ID'],ascending=True).drop('index',axis=1)
+    # Be careful with this if you want full season, season to date cover, for week 17, it is season to date up to week 16
+    # if you want full season, you have to go up to week 18 to get the full 17 weeks, just if you want to do analysis on season covers
+    return season_cover_df
+
+def season_cover_3(data,column_sign,name):
+    data[column_sign] = np.where((data[name] > 0), 1, np.where((data[name] < 0),-1,0))
+    return data
+
+spread_1 = season_cover_workings(matrix_df,'home_cover','away_cover','cover',0)
+spread_2=season_cover_2(spread_1,'cover')
+spread_3=season_cover_3(spread_2,'cover_sign','cover')
+
 with st.beta_expander('Season to Date Cover Graph'):
     st.write('Positive number means the number of games to date that you have covered the spread; in other words teams with a positive number have beaten expectations')
     st.write('Negative number means the number of games to date that you have not covered the spread; in other words teams with a negative number have performed below expectations')
@@ -218,19 +248,28 @@ with st.beta_expander('Season to Date Cover Graph'):
     text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('black'))
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
+with st.beta_expander('Power Ranking by Week'):
+    power_week=power_ranking_combined.copy()
+    team_names_id=team_names_id.rename(columns={'Away Team':'Team'})
+    id_names=team_names_id.drop_duplicates(subset=['ID'], keep='first')
+    pivot_df=pd.merge(power_week,id_names, on='ID')
+    # st.write('after merge', pivot_df)
+    pivot_df=pivot_df.loc[:,['Team','final_power','week']].copy()
+    # st.write('graphing?',pivot_df)
+    power_pivot=pd.pivot_table(pivot_df,index='Team', columns='week')
+    pivot_df_test = pivot_df.copy()
+    pivot_df_test=pivot_df_test[pivot_df_test['week']<19]
+    pivot_df_test['average']=pivot_df.groupby('Team')['final_power'].transform(np.mean)
+    # st.write('graphing?',pivot_df_test)
+    power_pivot.columns = power_pivot.columns.droplevel(0)
+    power_pivot['average'] = power_pivot.mean(axis=1)
+    # st.write(power_pivot)
+    # https://stackoverflow.com/questions/67045668/altair-text-over-a-heatmap-in-a-script
+    pivot_df=pivot_df.sort_values(by='final_power',ascending=False)
+    chart_power= alt.Chart(pivot_df_test).mark_rect().encode(alt.X('week:O',axis=alt.Axis(title='week',labelAngle=0)),
+    alt.Y('Team',sort=alt.SortField(field='average', order='descending')),color=alt.Color('final_power:Q',scale=alt.Scale(scheme='redyellowgreen')))
+    # https://altair-viz.github.io/gallery/layered_heatmap_text.html
+    # https://vega.github.io/vega/docs/schemes/
+    text=chart_power.mark_text().encode(text=alt.Text('final_power:N',format=",.0f"),color=alt.value('black'))
+    st.altair_chart(chart_power + text,use_container_width=True)
 
-    # merged_df=team_names(merged_df)
-    # home_spread=merged_df.loc[:,['Wk','Home','home_spread']].rename(columns={'Wk':'week','Home':'team','home_spread':'spread'})
-    # # st.write('home spread', home_spread)
-    # away_spread=merged_df.loc[:,['Wk','Away','away_spread']].rename(columns={'Wk':'week','Away':'team','away_spread':'spread'})
-    # combined_spread = pd.concat([home_spread,away_spread],axis=0)
-
-    # combined_spread=team_names(combined_spread)
-    # st.write('combined spread???', combined_spread.sort_values(by='week',ascending=True))
-    # st.write('to be merged with df1', df_1)
-    # df_1['week']=df_1['week']+1
-    # current=
-    
-
-
-    # data = concat_current_prior(current,prior_data)
