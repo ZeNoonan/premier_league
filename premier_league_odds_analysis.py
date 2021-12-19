@@ -162,6 +162,7 @@ for first,last in zip(first,last):
     result['week']=last+1
     power_ranking.append(result)
 power_ranking_combined = pd.concat(power_ranking).reset_index().rename(columns={'index':'ID'})
+st.write('power', power_ranking_combined)
 
 matches_df = matrix_df.copy()
 home_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].copy().rename(columns={'week':'Week','ID':'Home ID'})
