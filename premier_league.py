@@ -1,3 +1,4 @@
+from numpy.core.numeric import full
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -62,6 +63,8 @@ with st.beta_expander('Mins'):
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
         df_calc=df[df['Game_1']>0].copy()
         df_calc['4_games_rolling_mins']=df_calc.groupby(['full_name'])['minutes'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['4_games_rolling_bps']=df_calc.groupby(['full_name'])['bps'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['4_games_rolling_ict']=df_calc.groupby(['full_name'])['ict_index'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df=pd.merge(df,df_calc,how='outer').sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True])
         cols_to_move = ['full_name','week','year','Price' ,'minutes','Clean_Pts','Game_1','week_points','4_games_rolling_mins','team']
         cols = cols_to_move + [col for col in df if col not in cols_to_move]
@@ -71,10 +74,17 @@ with st.beta_expander('Mins'):
 
     data_2022=column_calcs(data_2022).copy()
     # st.write('data 2022', data_2022)
-    cols_to_move = ['full_name','week','year','Price' ,'minutes','Clean_Pts','Game_1','week_points','4_games_rolling_mins']
+    cols_to_move = ['full_name','Position','week','year','Price' ,'minutes','Clean_Pts','Game_1','week_points',
+    '4_games_rolling_mins','transfers_balance','transfers_in','transfers_out','bps','ict_index']
     cols = cols_to_move + [col for col in data_2022 if col not in cols_to_move]
     data_2022=data_2022[cols]
-    # st.write('rolling mins', data_2022[data_2022['full_name'].str.contains('edward_n')])
+
+    # st.write('rolling mins', data_2022[data_2022['full_name'].str.contains('michail')])
+    full_data=data_2022.loc[:,['full_name','Position','week','year','Price' ,'minutes','Clean_Pts','Game_1','week_points',
+    '4_games_rolling_mins','4_games_rolling_bps','4_games_rolling_ict','transfers_balance','transfers_in','transfers_out','bps','ict_index']].copy()
+    
+    
+
 
     player_names_pick=data_2022['full_name'].unique()
     names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=0)
@@ -83,7 +93,7 @@ with st.beta_expander('Mins'):
     data_2022['%_selected']=data_2022['selected'] / data_2022['total_selected']
     
     player_selected_detail_by_week = data_2022[data_2022['full_name']==names_selected_pick]
-    st.write('what week is used here')
+    # st.write('what week is used here')
     # player_selected_detail_by_week=player_selected_detail_by_week.loc[:,['full_name','week','selected','total_selected','year','Price','4_games_rolling_mins','team']]
     
     st.write( player_selected_detail_by_week.sort_values(by=['year','week'],ascending=[False,False]) )
@@ -185,4 +195,31 @@ with st.beta_expander('df'):
     # st.write(df)
 
 
+with st.beta_expander('test'):
+    # st.write('Rankings!', full_data[full_data['full_name'].str.contains('michail')])
+    
+    full_data['bps_rank']=full_data.groupby(['week'])['bps'].rank(method='dense', ascending=False)
+    full_data['bps_rolling_rank']=full_data.groupby(['week'])['4_games_rolling_bps'].rank(method='dense', ascending=False)
+    full_data['ict_rolling_rank']=full_data.groupby(['week'])['4_games_rolling_ict'].rank(method='dense', ascending=False)
+    # full_data['bps_rank_rolling']=full_data.groupby(['full_name'])['bps'].rolling(window=4,min_periods=1, center=False).sum()
+    full_data['mins_rank']=full_data.groupby(['week'])['4_games_rolling_mins'].rank(method='dense', ascending=False)
+    full_data['transfers_balance_rank']=full_data.groupby(['week'])['transfers_balance'].rank(method='dense', ascending=False)
+    full_data['transfer_in_rank']=full_data.groupby(['week'])['transfers_in'].rank(method='dense', ascending=False)
+    full_data['transfer_out_rank']=full_data.groupby(['week'])['transfers_out'].rank(method='dense', ascending=True)
+    full_data['ict_rank']=full_data.groupby(['week'])['ict_index'].rank(method='dense', ascending=False)
+    # col_list_1=['bps_rolling_rank','ict_rolling_rank','mins_rank','transfer_in_rank','transfer_out_rank']
+    col_list_1=['bps_rolling_rank','ict_rolling_rank','mins_rank','transfers_balance_rank']
+    full_data['total_sum_rank']=full_data[col_list_1].sum(axis=1)
+    full_data['total_rank']=full_data.groupby(['week'])['total_sum_rank'].rank(method='dense', ascending=True)
 
+    # df_update['total_pinnacle_rank']=df_update[col_list_1].sum(axis=1)*df_update['nan_pinnacle']
+    # st.write(df_update)
+    # df_update['factor_betfair_rank']=df_update['total_betfair_rank'].rank(method='dense', ascending=True)
+    st.write('Rankings!', full_data[full_data['full_name'].str.contains('michail')])
+
+    cols_to_move =['full_name','Position','week','total_sum_rank','total_rank','bps_rolling_rank','ict_rolling_rank','mins_rank','transfers_balance_rank','transfers_in','transfer_in_rank',
+    'transfers_out','transfer_out_rank','bps','ict_index','bps_rank','ict_rank','year','Price' ,'minutes','Clean_Pts','Game_1','week_points',
+    '4_games_rolling_mins']
+    cols = cols_to_move + [col for col in full_data if col not in cols_to_move]
+    full_data=full_data[cols].sort_values(by=['week','total_rank'],ascending=[True, True]).reset_index().drop('index',axis=1)
+    st.write(full_data[full_data['week']==17])
