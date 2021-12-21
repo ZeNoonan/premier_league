@@ -29,7 +29,8 @@ def to_excel(df):
     processed_data = output.getvalue()
     return processed_data
 
-with st.beta_expander('Mins'):
+# with st.beta_expander('Mins'):
+with st.expander('Mins'):
 
     # @st.cache
     def prep_base_data(url_csv, pick):
@@ -63,13 +64,17 @@ with st.beta_expander('Mins'):
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
         df_calc=df[df['Game_1']>0].copy()
         df_calc['4_games_rolling_mins']=df_calc.groupby(['full_name'])['minutes'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
-        df_calc['4_games_rolling_bps']=df_calc.groupby(['full_name'])['bps'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['4_games_rolling_bps']=df_calc.groupby(['full_name'])['bps'].rolling(window=8,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['4_games_rolling_ict']=df_calc.groupby(['full_name'])['ict_index'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df=pd.merge(df,df_calc,how='outer').sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True])
         cols_to_move = ['full_name','week','year','Price' ,'minutes','Clean_Pts','Game_1','week_points','4_games_rolling_mins','team']
         cols = cols_to_move + [col for col in df if col not in cols_to_move]
         df=df[cols]
         df['4_games_rolling_mins']=df.groupby('full_name')['4_games_rolling_mins'].ffill().fillna(0)
+        df['4_games_rolling_bps']=df.groupby('full_name')['4_games_rolling_bps'].ffill().fillna(0)
+        df['4_games_rolling_ict']=df.groupby('full_name')['4_games_rolling_ict'].ffill().fillna(0)
+
+
         return df
 
     data_2022=column_calcs(data_2022).copy()
@@ -134,7 +139,8 @@ with st.beta_expander('Mins'):
     # st.markdown(get_table_download_link(df_1), unsafe_allow_html=True)
     
 
-with st.beta_expander('df'):
+# with st.beta_expander('df'):
+with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
     # dfa[0].to_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
     df=pd.read_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
@@ -195,7 +201,8 @@ with st.beta_expander('df'):
     # st.write(df)
 
 
-with st.beta_expander('test'):
+# with st.beta_expander('test'):
+with st.expander('test'):
     # st.write('Rankings!', full_data[full_data['full_name'].str.contains('michail')])
     
     full_data['bps_rank']=full_data.groupby(['week'])['bps'].rank(method='dense', ascending=False)
@@ -215,11 +222,11 @@ with st.beta_expander('test'):
     # df_update['total_pinnacle_rank']=df_update[col_list_1].sum(axis=1)*df_update['nan_pinnacle']
     # st.write(df_update)
     # df_update['factor_betfair_rank']=df_update['total_betfair_rank'].rank(method='dense', ascending=True)
-    st.write('Rankings!', full_data[full_data['full_name'].str.contains('michail')])
+    st.write('Rankings!', full_data[full_data['full_name'].str.contains('mason_mount')])
 
     cols_to_move =['full_name','Position','week','total_sum_rank','total_rank','bps_rolling_rank','ict_rolling_rank','mins_rank','transfers_balance_rank','transfers_in','transfer_in_rank',
     'transfers_out','transfer_out_rank','bps','ict_index','bps_rank','ict_rank','year','Price' ,'minutes','Clean_Pts','Game_1','week_points',
     '4_games_rolling_mins']
     cols = cols_to_move + [col for col in full_data if col not in cols_to_move]
     full_data=full_data[cols].sort_values(by=['week','total_rank'],ascending=[True, True]).reset_index().drop('index',axis=1)
-    st.write(full_data[full_data['week']==17])
+    st.write(full_data[full_data['week']==18])
