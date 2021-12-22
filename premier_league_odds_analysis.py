@@ -11,7 +11,7 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-with st.beta_expander('df'):
+with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
     # dfa[0].to_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
     # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
@@ -204,7 +204,7 @@ spread_1 = season_cover_workings(matrix_df,'home_cover','away_cover','cover',0)
 spread_2=season_cover_2(spread_1,'cover')
 spread_3=season_cover_3(spread_2,'cover_sign','cover')
 
-with st.beta_expander('Season to Date Cover Graph'):
+with st.expander('Season to Date Cover Graph'):
     st.write('Positive number means the number of games to date that you have covered the spread; in other words teams with a positive number have beaten expectations')
     st.write('Negative number means the number of games to date that you have not covered the spread; in other words teams with a negative number have performed below expectations')
     st.write('blanks in graph are where the team got a bye week')
@@ -249,7 +249,7 @@ with st.beta_expander('Season to Date Cover Graph'):
     text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('black'))
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
-with st.beta_expander('Power Ranking by Week'):
+with st.expander('Power Ranking by Week'):
     power_week=power_ranking_combined.copy()
     team_names_id=team_names_id.rename(columns={'Away Team':'Team'})
     id_names=team_names_id.drop_duplicates(subset=['ID'], keep='first')
