@@ -243,14 +243,18 @@ with st.expander('Weekly FPL Player Ranking'):
 
     # Create a future gameweek
     # future_week=prior_week+1
-    
+
+    # last_tournament_played = combined.sort_values('date', ascending=False).drop_duplicates('PLAYER NAME').sort_values(by='SG: TOTAL_AVG',ascending=False)
     player_names=full_data['full_name'].unique()
-    names_selected = st.multiselect('Select Player',player_names)
-    st.write((combined.set_index('PLAYER NAME').loc[names_selected,:]).reset_index().sort_values(by='date',ascending=False).style.format(format_dict))
-    
-    data_future_week=full_data[full_data['week']==prior_week].drop(['transfers_balance','transfers_balance_rank','transfers_in','transfers_out','transfer_in_rank',
+    # names_selected = st.multiselect('Select Player',player_names)
+    data_future_week=full_data.set_index('full_name').loc[player_names,:].reset_index()
+    st.write(data_future_week.head())
+
+    # data_future_week=full_data[full_data['week']==prior_week].drop(['transfers_balance','transfers_balance_rank','transfers_in','transfers_out','transfer_in_rank',
+    # 'transfer_out_rank'],axis=1).copy()
+    data_future_week=data_future_week.drop(['transfers_balance','transfers_balance_rank','transfers_in','transfers_out','transfer_in_rank',
     'transfer_out_rank'],axis=1).copy()
-    data_future_week['week']=prior_week+1
+    # data_future_week['week']=prior_week+1
     # data_future_week['transfers_balance']=np.NaN
     # st.write('future', data_future_week.head())
 
@@ -266,4 +270,4 @@ with st.expander('Weekly FPL Player Ranking'):
     presentation_list=['total_sum_rank','total_rank','bps_rolling_rank','ict_rolling_rank','mins_rank','transfers_balance_rank',
     'bps','ict_index','bps_rank','ict_rank','week']
     cols = cols_to_move + [col for col in data_future_week if col not in cols_to_move]
-    st.write(data_future_week[cols].style.format('{:.0f}',subset=presentation_list))
+    st.write(data_future_week[cols].head().style.format('{:.0f}',subset=presentation_list))
