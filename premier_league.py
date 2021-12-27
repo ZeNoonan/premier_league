@@ -64,7 +64,7 @@ with st.expander('Mins'):
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
         df_calc=df[df['Game_1']>0].copy()
         df_calc['4_games_rolling_mins']=df_calc.groupby(['full_name'])['minutes'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
-        df_calc['4_games_rolling_bps']=df_calc.groupby(['full_name'])['bps'].rolling(window=8,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['8_games_rolling_bps']=df_calc.groupby(['full_name'])['bps'].rolling(window=8,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['4_games_rolling_ict']=df_calc.groupby(['full_name'])['ict_index'].rolling(window=4,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['8_games_rolling_ict']=df_calc.groupby(['full_name'])['ict_index'].rolling(window=8,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df=pd.merge(df,df_calc,how='outer').sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True])
@@ -72,7 +72,7 @@ with st.expander('Mins'):
         cols = cols_to_move + [col for col in df if col not in cols_to_move]
         df=df[cols]
         df['4_games_rolling_mins']=df.groupby('full_name')['4_games_rolling_mins'].ffill().fillna(0)
-        df['4_games_rolling_bps']=df.groupby('full_name')['4_games_rolling_bps'].ffill().fillna(0)
+        df['8_games_rolling_bps']=df.groupby('full_name')['8_games_rolling_bps'].ffill().fillna(0)
         df['4_games_rolling_ict']=df.groupby('full_name')['4_games_rolling_ict'].ffill().fillna(0)
         df['8_games_rolling_ict']=df.groupby('full_name')['8_games_rolling_ict'].ffill().fillna(0)
 
@@ -88,7 +88,7 @@ with st.expander('Mins'):
 
     # st.write('rolling mins', data_2022[data_2022['full_name'].str.contains('michail')])
     full_data=data_2022.loc[:,['full_name','Position','week','year','Price' ,'minutes','Clean_Pts','Game_1','week_points',
-    '4_games_rolling_mins','4_games_rolling_bps','4_games_rolling_ict','8_games_rolling_ict','transfers_balance','transfers_in','transfers_out','bps','ict_index']].copy()
+    '4_games_rolling_mins','8_games_rolling_bps','4_games_rolling_ict','8_games_rolling_ict','transfers_balance','transfers_in','transfers_out','bps','ict_index']].copy()
     
     
 
@@ -208,7 +208,7 @@ with st.expander('Weekly FPL Player Ranking'):
     # st.write('Rankings!', full_data[full_data['full_name'].str.contains('michail')])
     
     full_data['bps_rank']=full_data.groupby(['week'])['bps'].rank(method='dense', ascending=False)
-    full_data['bps_rolling_rank']=full_data.groupby(['week'])['4_games_rolling_bps'].rank(method='dense', ascending=False)
+    full_data['bps_rolling_rank']=full_data.groupby(['week'])['8_games_rolling_bps'].rank(method='dense', ascending=False)
     full_data['ict_rolling_rank']=full_data.groupby(['week'])['4_games_rolling_ict'].rank(method='dense', ascending=False)
     full_data['8_ict_rolling_rank']=full_data.groupby(['week'])['8_games_rolling_ict'].rank(method='dense', ascending=False)
     # full_data['bps_rank_rolling']=full_data.groupby(['full_name'])['bps'].rolling(window=4,min_periods=1, center=False).sum()
@@ -226,6 +226,7 @@ with st.expander('Weekly FPL Player Ranking'):
     # df_update['total_pinnacle_rank']=df_update[col_list_1].sum(axis=1)*df_update['nan_pinnacle']
     # st.write(df_update)
     # df_update['factor_betfair_rank']=df_update['total_betfair_rank'].rank(method='dense', ascending=True)
+    
     st.write('Rankings!', full_data[full_data['full_name'].str.contains('cristiano')])
 
     cols_to_move =['full_name','Position','week','total_sum_rank','total_rank','bps_rolling_rank','ict_rolling_rank','mins_rank','transfers_balance_rank',
@@ -244,11 +245,11 @@ with st.expander('Weekly FPL Player Ranking'):
     # Create a future gameweek
     # future_week=prior_week+1
 
-    # last_tournament_played = combined.sort_values('date', ascending=False).drop_duplicates('PLAYER NAME').sort_values(by='SG: TOTAL_AVG',ascending=False)
-    player_names=full_data['full_name'].unique()
+    data_future_week = full_data.sort_values('week', ascending=False).drop_duplicates('full_name')
+    # player_names=full_data['full_name'].unique()
     # names_selected = st.multiselect('Select Player',player_names)
-    data_future_week=full_data.set_index('full_name').loc[player_names,:].reset_index()
-    st.write(data_future_week.head())
+    # data_future_week=full_data.set_index('full_name').loc[player_names,:].reset_index()
+    # st.write(data_future_week.head())
 
     # data_future_week=full_data[full_data['week']==prior_week].drop(['transfers_balance','transfers_balance_rank','transfers_in','transfers_out','transfer_in_rank',
     # 'transfer_out_rank'],axis=1).copy()
@@ -263,11 +264,17 @@ with st.expander('Weekly FPL Player Ranking'):
     fpl_2022_data=pd.read_pickle('C:/Users/Darragh/Documents/Python/Fantasy_Football/fpl_1/fpl_2022.pkl')
     current_transfers = fpl_2022_data.loc[:,['full_name','transfers_balance']]
     data_future_week = pd.merge(data_future_week,current_transfers,on='full_name',how='outer')
+    data_future_week['week']=prior_week+1
     data_future_week['transfers_balance_rank']=data_future_week.groupby(['week'])['transfers_balance'].rank(method='dense', ascending=False)
     data_future_week['total_sum_rank']=data_future_week[col_list_1].sum(axis=1)
     data_future_week['total_rank']=data_future_week.groupby(['week'])['total_sum_rank'].rank(method='dense', ascending=True)
-    st.write('Projection')
-    presentation_list=['total_sum_rank','total_rank','bps_rolling_rank','ict_rolling_rank','mins_rank','transfers_balance_rank',
+    # st.write('Projection')
+    
+    data_future_week=data_future_week.sort_values(by=['total_rank'],ascending=True)
+    presentation_list=['total_sum_rank','total_rank','transfers_balance_rank','transfers_balance','bps_rolling_rank','ict_rolling_rank','mins_rank',
     'bps','ict_index','bps_rank','ict_rank','week']
+    cols_to_move =['full_name','Position','week','total_sum_rank','total_rank','transfers_balance_rank','transfers_balance','bps_rolling_rank','ict_rolling_rank','mins_rank',
+    'bps','ict_index','bps_rank','ict_rank','year','Price' ,'minutes','Clean_Pts','Game_1','week_points',
+    '4_games_rolling_mins']
     cols = cols_to_move + [col for col in data_future_week if col not in cols_to_move]
-    st.write(data_future_week[cols].head().style.format('{:.0f}',subset=presentation_list))
+    st.write(data_future_week[cols].style.format('{:,.0f}',subset=presentation_list))
