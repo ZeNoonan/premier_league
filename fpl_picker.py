@@ -29,8 +29,10 @@ with st.expander('Data Prep'):
 
     col_selection_week=['team','bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
     'value','week','year']
-    url_csv=read_data(url2022,col_selection_url)
-    df_week_data_raw = read_data(file_location_2022,col_selection_week)
+    url_csv_2022=read_data(url2022,col_selection_url)
+    url_csv_2021=read_data(url2021,col_selection_url)
+    df_week_data_raw_2022 = read_data(file_location_2022,col_selection_week)
+    df_week_data_raw_2021 = read_data(file_location_2021,col_selection_week)
 
     @st.cache
     def prep_base_data(url_csv, pick):
@@ -47,9 +49,14 @@ with st.expander('Data Prep'):
         18:'Watford',19:'West_Ham',20:'Wolves'})
         return file
 
+    @st.cache(suppress_st_warning=True)
+    def data_2021_team_names(file):
+        file['team'] = file['team'].map({1: 'Arsenal', 2: 'Aston_Villa', 3:'Brighton', 4:'Burnley',5:'Chelsea',6:'Crystal_Palace',7:'Everton',
+        8:'Fulham',9:'Leicester',10:'Leeds_Utd',11:'Liverpool',12:'Man_City',13:'Man_Utd',14:'Newcastle',15:'Sheffield_Utd',16:'Southampton',17:'Spurs',
+        18:'West_Brow',19:'West_Ham',20:'Wolves'})
+        return file
 
-
-    data_2022 = (data_2022_team_names( (prep_base_data(url_csv, df_week_data_raw)).rename(columns = {'team_x':'team'})))
-    data_2021 = (data_2021_team_names( (prep_base_data(url2021, pick2021)).rename(columns = {'team_x':'team'})))
+    data_2022 = (data_2022_team_names( (prep_base_data(url_csv_2022, df_week_data_raw_2022)).rename(columns = {'team_x':'team'})))
+    data_2021 = (data_2021_team_names( (prep_base_data(url_csv_2021, df_week_data_raw_2021)).rename(columns = {'team_x':'team'})))
     st.write(data_2022.head())
 
