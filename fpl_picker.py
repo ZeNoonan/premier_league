@@ -63,6 +63,16 @@ with st.expander('Data Prep'):
         return pd.merge(url_csv,pick_data, on='player_id',how ='outer')
 
     @st.cache(suppress_st_warning=True)
+    def clean_blank_gw(x,team1,team2,week_no):
+        x = x [ ((x ['team']==team1) | (x ['team']==team2)) & (x['week']==week_no) ].copy()
+        x['round']=week_no + 1
+        x['week'] =week_no + 1
+        x['minutes']=np.NaN
+        x['week_points']=np.NaN
+        x['fixture'] =np.NaN
+        return x
+
+    @st.cache(suppress_st_warning=True)
     def data_2020_clean_double_gw(url_pick2020):
         url_pick2020=url_pick2020[ ~(url_pick2020['round']==29) | ~(url_pick2020['fixture']==275)]
         url_pick2020.loc[:,'week']=url_pick2020['week'].replace({39:30,40:31,41:32,42:33,43:34,44:35,45:36,46:37,47:38})
@@ -75,7 +85,7 @@ with st.expander('Data Prep'):
     data_2022 = (( (prep_base_data(url_csv_2022, df_week_data_raw_2022))))
     data_2021 = (( (prep_base_data(url_csv_2021, df_week_data_raw_2021))))
     data_2020 = (( (prep_base_data(url_csv_2020, df_week_data_raw_2020)))).copy()
-    # data_2020 = data_2020_clean_double_gw(data_2020)
+    data_2020 = data_2020_clean_double_gw(data_2020)
 
     st.write(data_2022.head())
     st.write(data_2021.head())
