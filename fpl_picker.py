@@ -41,7 +41,7 @@ with st.expander('Data Prep'):
     col_selection_week=['team','bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
     'value','week','year']
     col_selection_week_2020=['bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
-    'value','week','year']
+    'value','week','year','round','fixture']
     url_csv_2022=read_data(url2022,col_selection_url)
     url_csv_2021=read_data(url2021,col_selection_url)
     url_csv_2020=read_data(url2020,col_selection_url_2020).copy()
@@ -87,7 +87,48 @@ with st.expander('Data Prep'):
     data_2020 = (( (prep_base_data(url_csv_2020, df_week_data_raw_2020)))).copy()
     data_2020 = data_2020_clean_double_gw(data_2020)
 
-    st.write(data_2022.head())
-    st.write(data_2021.head())
-    st.write(data_2020[data_2020['full_name'].str.contains('salah')])
+    @st.cache(suppress_st_warning=True)
+    def combine_dataframes(a,b,c):
+        return pd.concat ([a,b,c], axis=0,sort = True)
 
+    full_df = combine_dataframes(data_2022,data_2021,data_2020).drop(['fixture'],axis=1).copy()
+    
+
+    # st.write(data_2022.head())
+    # st.write(data_2021.head())
+    # st.write(data_2020[data_2020['full_name'].str.contains('salah')])
+
+    @st.cache(suppress_st_warning=True)
+    def column_calcs_1(df):
+        df['Price'] =df['value'] / 10
+        df['Game_1'] = np.where((df['minutes'] > 0.5), 1, 0)
+        df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
+        return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
+
+    full_df=column_calcs_1(full_df)
+    df=full_df.reset_index().rename(columns={'index':'id_merge'})
+
+    @st.cache(suppress_st_warning=True)
+    def column_calcs_2(df):
+        df_calc=df[df['Game_1']>0].copy()
+        df_calc['last_60_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=60,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_60_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=60,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_60_ppg']=df_calc['last_60_points']/df_calc['last_60_games']
+        df=pd.merge(df,df_calc,how='outer')
+        df['last_60_ppg']=df['last_60_ppg'].fillna(method='ffill')
+        df['last_60_games']=df['last_60_games'].fillna(method='ffill')
+        df['games_total'] = df.groupby (['full_name'])['Game_1'].transform('sum')
+        return df
+
+    full_df=column_calcs_2(full_df)
+
+    cols_to_move=['full_name','team','week','year','minutes','Clean_Pts','last_60_ppg','games_total','last_60_games','last_60_points',
+    'bps','bonus','player_id','ict_index',
+    'opponent_team','selected','transfers_in','transfers_out',
+    'value']
+    cols = cols_to_move + [col for col in full_df if col not in cols_to_move]
+    full_df=full_df[cols]
+    st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
+
+
+   
