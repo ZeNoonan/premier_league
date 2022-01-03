@@ -91,7 +91,7 @@ with st.expander('Data Prep'):
     def combine_dataframes(a,b,c):
         return pd.concat ([a,b,c], axis=0,sort = True)
 
-    full_df = combine_dataframes(data_2022,data_2021,data_2020).drop(['fixture'],axis=1).copy()
+    full_df = combine_dataframes(data_2022,data_2021,data_2020).drop(['fixture','round'],axis=1).copy()
     
 
     # st.write(data_2022.head())
@@ -103,7 +103,7 @@ with st.expander('Data Prep'):
         df['Price'] =df['value'] / 10
         df['Game_1'] = np.where((df['minutes'] > 0.5), 1, 0)
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
-        return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
+        return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
 
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
@@ -120,15 +120,36 @@ with st.expander('Data Prep'):
         df['games_total'] = df.groupby (['full_name'])['Game_1'].transform('sum')
         return df
 
-    full_df=column_calcs_2(full_df)
+    full_df=column_calcs_2(full_df).drop(['value','week_points','first_name','second_name'],axis=1)
 
-    cols_to_move=['full_name','team','week','year','minutes','Clean_Pts','last_60_ppg','games_total','last_60_games','last_60_points',
+    cols_to_move=['full_name','Position','Price','team','week','year','minutes','Clean_Pts','last_60_ppg','games_total','last_60_games','last_60_points',
     'bps','bonus','player_id','ict_index',
     'opponent_team','selected','transfers_in','transfers_out',
-    'value']
+]
     cols = cols_to_move + [col for col in full_df if col not in cols_to_move]
-    full_df=full_df[cols]
-    st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
+    full_df=full_df[cols].sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
+    # st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
+    format_mapping={'week':"{:,.0f}",'year':"{:.0f}",'minutes':"{:,.0f}",'Clean_Pts':"{:,.0f}",'last_60_ppg':"{:,.1f}",'games_total':"{:,.0f}",
+    'last_60_games':"{:,.0f}",'last_60_points':"{:,.0f}",'Price':"{:,.1f}",'selected':"{:,.0f}"}
+
+with st.expander('Player Detail by Week'):
+    player_names_pick=full_df['full_name'].unique()
+    names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=0)
+    player_selected_detail_by_week = full_df[full_df['full_name']==names_selected_pick]
+    st.write(player_selected_detail_by_week.style.format(format_mapping))
+
+@st.cache(suppress_st_warning=True)
+def find_latest_player_stats(x):
+    x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
+    return x[x['year'] == 2022]
+
+with st.expander('Player Stats Latest'):
+    latest_df = find_latest_player_stats(full_df)
+    min_games_played = st.number_input ("Minimum number of games ever", min_value=int(0),value=int(14))
+    latest_df=latest_df[latest_df['games_total'] >= min_games_played]
+    st.write(latest_df.style.format(format_mapping))
+
+    # https://stackoverflow.com/questions/70351068/conditional-formatting-multiple-columns-in-pandas-data-frame-and-saving-as-html
 
 
    
