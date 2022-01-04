@@ -103,34 +103,56 @@ with st.expander('Data Prep'):
         df['Price'] =df['value'] / 10
         df['Game_1'] = np.where((df['minutes'] > 0.5), 1, 0)
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
-        return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
+        return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
 
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
+    # st.write('full df z', df)
 
     @st.cache(suppress_st_warning=True)
     def column_calcs_2(df):
         df_calc=df[df['Game_1']>0].copy()
-        df_calc['last_60_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=60,min_periods=1, center=False).sum().reset_index(0,drop=True)
-        df_calc['last_60_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=60,min_periods=1, center=False).sum().reset_index(0,drop=True)
-        df_calc['last_60_ppg']=df_calc['last_60_points']/df_calc['last_60_games']
+
+        df_calc['last_76_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=76,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_76_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=76,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_76_ppg']=df_calc['last_76_points']/df_calc['last_76_games']
+        df_calc['last_38_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=38,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_38_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=38,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_38_ppg']=df_calc['last_38_points']/df_calc['last_38_games']
+        df_calc['last_19_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=19,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_19_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=19,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_19_ppg']=df_calc['last_19_points']/df_calc['last_19_games']
+
         df=pd.merge(df,df_calc,how='outer')
-        df['last_60_ppg']=df['last_60_ppg'].fillna(method='ffill')
-        df['last_60_games']=df['last_60_games'].fillna(method='ffill')
+        df['last_76_ppg']=df['last_76_ppg'].fillna(method='ffill')
+        df['last_76_games']=df['last_76_games'].fillna(method='ffill')
+        df['last_38_ppg']=df['last_38_ppg'].fillna(method='ffill')
+        df['last_38_games']=df['last_38_games'].fillna(method='ffill')
+        df['last_19_ppg']=df['last_19_ppg'].fillna(method='ffill')
+        df['last_19_games']=df['last_19_games'].fillna(method='ffill')
+
         df['games_total'] = df.groupby (['full_name'])['Game_1'].transform('sum')
         return df
 
     full_df=column_calcs_2(full_df).drop(['value','week_points','first_name','second_name'],axis=1)
+    # st.write('check this',full_df)
 
-    cols_to_move=['full_name','Position','Price','team','week','year','minutes','Clean_Pts','last_60_ppg','games_total','last_60_games','last_60_points',
-    'bps','bonus','player_id','ict_index',
-    'opponent_team','selected','transfers_in','transfers_out',
-]
+    # cols_to_move=['full_name','Position','Price','team','week','year','minutes','Clean_Pts','last_76_ppg','last_38_ppg','games_total',
+    # 'last_76_games','last_76_points',
+    # 'games_total','last_38_games','last_38_points','bps','bonus','player_id','ict_index',
+    # 'opponent_team','selected','transfers_in','transfers_out']
+
+    cols_to_move=['full_name','Position','Price','team','week','year','minutes','Clean_Pts','last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
+    'selected']
+
     cols = cols_to_move + [col for col in full_df if col not in cols_to_move]
-    full_df=full_df[cols].sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
-    # st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
-    format_mapping={'week':"{:,.0f}",'year':"{:.0f}",'minutes':"{:,.0f}",'Clean_Pts':"{:,.0f}",'last_60_ppg':"{:,.1f}",'games_total':"{:,.0f}",
-    'last_60_games':"{:,.0f}",'last_60_points':"{:,.0f}",'Price':"{:,.1f}",'selected':"{:,.0f}"}
+    # st.write('check', full_df[cols])
+    # full_df=full_df[cols].sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
+    full_df=(full_df[cols]).sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
+    st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
+    format_mapping={'week':"{:,.0f}",'year':"{:.0f}",'minutes':"{:,.0f}",'Clean_Pts':"{:,.0f}",'last_76_ppg':"{:,.1f}",'games_total':"{:,.0f}",
+    'last_76_games':"{:,.0f}",'last_76_points':"{:,.0f}",'Price':"{:,.1f}",'selected':"{:,.0f}",'last_38_ppg':"{:,.1f}",'last_38_games':"{:,.0f}",
+    'last_19_games':"{:,.0f}",'last_19_ppg':"{:,.1f}"}
 
 with st.expander('Player Detail by Week'):
     player_names_pick=full_df['full_name'].unique()
