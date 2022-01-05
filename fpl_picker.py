@@ -102,6 +102,7 @@ with st.expander('Data Prep'):
     def column_calcs_1(df):
         df['Price'] =df['value'] / 10
         df['Game_1'] = np.where((df['minutes'] > 0.5), 1, 0)
+        df['games_2022'] = np.where((df['year'] == 2022), df['Game_1'], 0)
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
         return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
 
@@ -123,6 +124,8 @@ with st.expander('Data Prep'):
         df_calc['last_19_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=19,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['last_19_ppg']=df_calc['last_19_points']/df_calc['last_19_games']
 
+        df_calc['games_2022_rolling']=df_calc.groupby(['full_name'])['games_2022'].cumsum()
+
         df=pd.merge(df,df_calc,how='outer')
         df['last_76_ppg']=df['last_76_ppg'].fillna(method='ffill')
         df['last_76_games']=df['last_76_games'].fillna(method='ffill')
@@ -130,6 +133,8 @@ with st.expander('Data Prep'):
         df['last_38_games']=df['last_38_games'].fillna(method='ffill')
         df['last_19_ppg']=df['last_19_ppg'].fillna(method='ffill')
         df['last_19_games']=df['last_19_games'].fillna(method='ffill')
+
+        df['games_2022_rolling']=df['games_2022_rolling'].fillna(method='ffill')
 
         df['games_total'] = df.groupby (['full_name'])['Game_1'].transform('sum')
         return df
@@ -142,17 +147,17 @@ with st.expander('Data Prep'):
     # 'games_total','last_38_games','last_38_points','bps','bonus','player_id','ict_index',
     # 'opponent_team','selected','transfers_in','transfers_out']
 
-    cols_to_move=['full_name','Position','Price','team','week','year','minutes','Clean_Pts','last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
+    cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
     'selected']
 
     cols = cols_to_move + [col for col in full_df if col not in cols_to_move]
     # st.write('check', full_df[cols])
-    # full_df=full_df[cols].sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
+    full_df=full_df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
     full_df=(full_df[cols]).sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
-    st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
+    # st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
     format_mapping={'week':"{:,.0f}",'year':"{:.0f}",'minutes':"{:,.0f}",'Clean_Pts':"{:,.0f}",'last_76_ppg':"{:,.1f}",'games_total':"{:,.0f}",
     'last_76_games':"{:,.0f}",'last_76_points':"{:,.0f}",'Price':"{:,.1f}",'selected':"{:,.0f}",'last_38_ppg':"{:,.1f}",'last_38_games':"{:,.0f}",
-    'last_19_games':"{:,.0f}",'last_19_ppg':"{:,.1f}"}
+    'last_19_games':"{:,.0f}",'last_19_ppg':"{:,.1f}",'games_2022_rolling':"{:,.0f}"}
 
 with st.expander('Player Detail by Week'):
     player_names_pick=full_df['full_name'].unique()
@@ -163,13 +168,29 @@ with st.expander('Player Detail by Week'):
 @st.cache(suppress_st_warning=True)
 def find_latest_player_stats(x):
     x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
+    x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
     return x[x['year'] == 2022]
 
 with st.expander('Player Stats Latest'):
     latest_df = find_latest_player_stats(full_df)
-    min_games_played = st.number_input ("Minimum number of games ever", min_value=int(0),value=int(14))
-    latest_df=latest_df[latest_df['games_total'] >= min_games_played]
-    st.write(latest_df.style.format(format_mapping))
+    # min_games_played = st.number_input ("Minimum number of games ever", min_value=int(0),value=int(14))
+    # latest_df=latest_df[latest_df['games_total'] >= min_games_played].sort_values(by=['last_76_ppg'],ascending=False)
+    latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
+    
+    def ranked_players(x):
+        # only want players who played greater than a season ie 38 games big sample size
+        x = x[x['games_total']>38]
+        x['ppg_76_rank']=x['last_76_ppg'].rank(method='dense', ascending=True)
+        return x
+
+    latest_df = ranked_players(latest_df)
+
+    cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
+    'selected']
+    cols = cols_to_move + [col for col in full_df if col not in cols_to_move]
+    full_df=(full_df[cols])
+
+    st.write(latest_df.set_index('full_name').style.format(format_mapping))
 
     # https://stackoverflow.com/questions/70351068/conditional-formatting-multiple-columns-in-pandas-data-frame-and-saving-as-html
 
