@@ -157,7 +157,9 @@ with st.expander('Data Prep'):
     # st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
     format_mapping={'week':"{:,.0f}",'year':"{:.0f}",'minutes':"{:,.0f}",'Clean_Pts':"{:,.0f}",'last_76_ppg':"{:,.1f}",'games_total':"{:,.0f}",
     'last_76_games':"{:,.0f}",'last_76_points':"{:,.0f}",'Price':"{:,.1f}",'selected':"{:,.0f}",'last_38_ppg':"{:,.1f}",'last_38_games':"{:,.0f}",
-    'last_19_games':"{:,.0f}",'last_19_ppg':"{:,.1f}",'games_2022_rolling':"{:,.0f}"}
+    'last_19_games':"{:,.0f}",'last_19_ppg':"{:,.1f}",'games_2022_rolling':"{:,.0f}",'ppg_76_rank':"{:,.0f}",'total_sum_rank':"{:,.0f}",
+    'value_ppg':"{:,.0f}",'value_rank':"{:,.0f}",'selected_rank':"{:,.0f}",'transfers_balance':"{:,.0f}",
+    'net_transfers_rank':"{:,.0f}",'totals_ranked':"{:,.0f}"}
 
 with st.expander('Player Detail by Week'):
     player_names_pick=full_df['full_name'].unique()
@@ -165,34 +167,153 @@ with st.expander('Player Detail by Week'):
     player_selected_detail_by_week = full_df[full_df['full_name']==names_selected_pick]
     st.write(player_selected_detail_by_week.style.format(format_mapping))
 
-@st.cache(suppress_st_warning=True)
-def find_latest_player_stats(x):
-    x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
-    x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
-    return x[x['year'] == 2022]
+
 
 with st.expander('Player Stats Latest'):
+
+    # @st.cache(suppress_st_warning=True)
+    def find_latest_player_stats(x):
+        week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
+        x=x[x['week'] <= week_no]
+        x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
+        # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
+        return x[x['year'] == 2022]
+
     latest_df = find_latest_player_stats(full_df)
-    # min_games_played = st.number_input ("Minimum number of games ever", min_value=int(0),value=int(14))
-    # latest_df=latest_df[latest_df['games_total'] >= min_games_played].sort_values(by=['last_76_ppg'],ascending=False)
+    
     latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
     
     def ranked_players(x):
         # only want players who played greater than a season ie 38 games big sample size
         x = x[x['games_total']>38]
-        x['ppg_76_rank']=x['last_76_ppg'].rank(method='dense', ascending=True)
+        x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
+        return x
+
+    def value_rank(x):
+        x['total_selected']=9000000
+        x['%_selected']=x['selected'] / x['total_selected']
+        x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
+        # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
+        x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
+        x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
         return x
 
     latest_df = ranked_players(latest_df)
+    latest_df = value_rank(latest_df)
 
-    cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
-    'selected']
-    cols = cols_to_move + [col for col in full_df if col not in cols_to_move]
-    full_df=(full_df[cols])
+    weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
+    def merge_latest_transfers(x):
+        return pd.merge(x,weekly_transfers_in,on=['full_name'],how='left')
 
+    def weekly_transfers_historical(x):
+        x['transfers_balance']=x['transfers_in']-x['transfers_out']
+        return x
+
+    def rank_calc(x):
+        # USE THIS FOR LATEST TRANSFERS IN WEEK
+        x['net_transfers_rank']=x.loc[:,['transfers_balance']].rank(method='dense', ascending=False)
+        return x
+
+    def rank_total_calc(x):
+        col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
+        x['total_sum_rank']=x[col_list_1].sum(axis=1)
+        x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
+        return x
+
+    # latest_df = merge_latest_transfers(latest_df)
+
+    latest_df = weekly_transfers_historical(latest_df)
+    latest_df = rank_calc(latest_df)
+    latest_df = rank_total_calc(latest_df)
+
+    cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
+    'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank','transfers_balance',
+    'last_38_ppg','last_19_ppg','games_total','last_38_games','selected']
+    cols = cols_to_move + [col for col in latest_df if col not in cols_to_move]
+    latest_df=((latest_df[cols].sort_values(by=['totals_ranked'],ascending=True)))
+    st.write('number of players', latest_df['full_name'].count())
     st.write(latest_df.set_index('full_name').style.format(format_mapping))
+
+    goalkeeper_data=latest_df[(latest_df['Position']=='GK')].copy()
+    defender_data=latest_df[(latest_df['Position']=='DF')].copy()
+    midfielder_data=latest_df[latest_df['Position']=='MD'].copy()
+    forward_data=latest_df[latest_df['Position']=='FW'].copy()
+
+    st.write(goalkeeper_data.set_index('full_name').style.format(format_mapping))
+    st.write(defender_data.set_index('full_name').style.format(format_mapping))
+    st.write(midfielder_data.set_index('full_name').style.format(format_mapping))
+    st.write(forward_data.set_index('full_name').style.format(format_mapping))
 
     # https://stackoverflow.com/questions/70351068/conditional-formatting-multiple-columns-in-pandas-data-frame-and-saving-as-html
 
+# with st.expander('TEST RUN'):
+#     raw_data = []
+#     for n in range(1,21): 
+#         # @st.cache(suppress_st_warning=True)
+#         def find_latest_player_stats(x):
+#             # week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
+#             x=x[x['week'] <= n]
+#             x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
+#             # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
+#             return x[x['year'] == 2022]
 
-   
+#         latest_df = find_latest_player_stats(full_df)
+        
+#         latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
+        
+#         def ranked_players(x):
+#             # only want players who played greater than a season ie 38 games big sample size
+#             x = x[x['games_total']>38]
+#             x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
+#             return x
+
+#         def value_rank(x):
+#             x['total_selected']=9000000
+#             x['%_selected']=x['selected'] / x['total_selected']
+#             x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
+#             # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
+#             x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
+#             x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
+#             return x
+
+#         latest_df = ranked_players(latest_df)
+#         latest_df = value_rank(latest_df)
+
+#         weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
+#         def merge_latest_transfers(x):
+#             return pd.merge(x,weekly_transfers_in,on=['full_name'],how='left')
+
+#         def weekly_transfers_historical(x):
+#             x['transfers_balance']=x['transfers_in']-x['transfers_out']
+#             return x
+
+#         def rank_calc(x):
+#             # USE THIS FOR LATEST TRANSFERS IN WEEK
+#             x['net_transfers_rank']=x.loc[:,['transfers_balance']].rank(method='dense', ascending=False)
+#             return x
+
+#         def rank_total_calc(x):
+#             col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
+#             x['total_sum_rank']=x[col_list_1].sum(axis=1)
+#             x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
+#             return x
+
+#         latest_df = weekly_transfers_historical(latest_df)
+#         latest_df = rank_calc(latest_df)
+#         latest_df = rank_total_calc(latest_df)
+
+#         cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
+#         'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank','transfers_balance',
+#         'last_38_ppg','last_19_ppg','games_total','last_38_games','selected']
+#         cols = cols_to_move + [col for col in latest_df if col not in cols_to_move]
+#         latest_df=((latest_df[cols].sort_values(by=['totals_ranked'],ascending=True)))
+#         # latest_df=latest_df.loc[:['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
+#         # 'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank']]
+#         raw_data.append(latest_df)
+#         df1 = pd.concat(raw_data, ignore_index=True)
+#         df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date.csv')
+
+
+with st.expander('Analyse GW data'):
+    data=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date.csv')
+    st.write(data.head())
