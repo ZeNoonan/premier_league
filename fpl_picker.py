@@ -314,27 +314,34 @@ with st.expander('Player Stats Latest'):
 #         df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date.csv')
 
 
-with st.expander('Analyse GW data'):
+with st.expander('Analyse GW data Player Level'):
     @st.cache
     def load_data(x):
         return pd.read_csv(x)
     data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date.csv')
     # player_detail_data=data.copy().drop('Unnamed: 0',axis=1)
     player_detail_data=data.copy()
+    st.write((player_detail_data[player_detail_data['week']==16]).sort_values(by=['full_name']))
+
+    st.write('duplicate')
+    st.write(player_detail_data.duplicated(subset=['full_name','week']))
+
     player_names_pick=player_detail_data['full_name'].unique()
     names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick_data',index=0)
     player_selected_detail_by_week = (player_detail_data[player_detail_data['full_name']==names_selected_pick]).drop('Unnamed: 0',axis=1)
-    st.write(player_selected_detail_by_week.set_index('week').style.format(format_mapping))
+    # st.write(player_selected_detail_by_week.set_index('week').style.format(format_mapping))
+    st.write(player_selected_detail_by_week.style.format(format_mapping))
     # st.write(data)
-    # st.write(data[data['year']!=2022])
+    
 
 
 with st.expander('Graph GW data'):
     data=data[data['games_2022_rolling']>0]
     data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
-    stdc_df=data.loc[:,['Week','Team','cover']].copy()
+    stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
     # st.write(stdc_df.sort_values(by=['Team','Week']))
+
     stdc_pivot=pd.pivot_table(stdc_df,index='Team', columns='Week')
     stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
     chart_cover= alt.Chart(stdc_df).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
