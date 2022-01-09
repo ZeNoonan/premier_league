@@ -140,7 +140,8 @@ with st.expander('Data Prep'):
         return df
 
     full_df=column_calcs_2(full_df).drop(['value','week_points','first_name','second_name'],axis=1)
-    # st.write('check this',full_df)
+
+    # st.write('check this full df',full_df[full_df['full_name'].str.contains('kane')])
 
     # cols_to_move=['full_name','Position','Price','team','week','year','minutes','Clean_Pts','last_76_ppg','last_38_ppg','games_total',
     # 'last_76_games','last_76_points',
@@ -174,7 +175,7 @@ with st.expander('Player Stats Latest'):
     # @st.cache(suppress_st_warning=True)
     def find_latest_player_stats(x):
         week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
-        x=x[x['week'] <= week_no]
+        x=x[x['week'] == week_no]
         x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
         # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
         return x[x['year'] == 2022]
@@ -246,18 +247,20 @@ with st.expander('Player Stats Latest'):
 
     # https://stackoverflow.com/questions/70351068/conditional-formatting-multiple-columns-in-pandas-data-frame-and-saving-as-html
 
-# with st.expander('TEST RUN'):
+# with st.expander('TEST RUN WORKING THROUGH'):
+#     st.write('check this full df',full_df[full_df['full_name'].str.contains('kane')])
 #     raw_data = []
-#     for n in range(1,21): 
+#     for n in range(11,14): 
 #         # @st.cache(suppress_st_warning=True)
 #         def find_latest_player_stats(x):
 #             # week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
-#             x=x[x['week'] <= n]
+#             x=x[x['week'] == n]
 #             x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
 #             # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
 #             return x[x['year'] == 2022]
 
 #         latest_df = find_latest_player_stats(full_df)
+
         
 #         latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
         
@@ -310,21 +313,89 @@ with st.expander('Player Stats Latest'):
 #         # latest_df=latest_df.loc[:['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
 #         # 'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank']]
 #         raw_data.append(latest_df)
-#         df1 = pd.concat(raw_data, ignore_index=True)
-#         df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date.csv')
+#     df1 = pd.concat(raw_data, ignore_index=True)
+#     # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_1.csv')
+
+with st.expander('TEST RUN'):
+    raw_data = []
+    for n in range(1,21): 
+        # @st.cache(suppress_st_warning=True)
+        def find_latest_player_stats(x):
+            # week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
+            x=x[x['week'] == n]
+            x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
+            # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
+            return x[x['year'] == 2022]
+
+        latest_df = find_latest_player_stats(full_df)
+        
+        latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
+        
+        def ranked_players(x):
+            # only want players who played greater than a season ie 38 games big sample size
+            x = x[x['games_total']>38]
+            x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
+            return x
+
+        def value_rank(x):
+            x['total_selected']=9000000
+            x['%_selected']=x['selected'] / x['total_selected']
+            x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
+            # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
+            x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
+            x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
+            return x
+
+        latest_df = ranked_players(latest_df)
+        latest_df = value_rank(latest_df)
+
+        weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
+        def merge_latest_transfers(x):
+            return pd.merge(x,weekly_transfers_in,on=['full_name'],how='left')
+
+        def weekly_transfers_historical(x):
+            x['transfers_balance']=x['transfers_in']-x['transfers_out']
+            return x
+
+        def rank_calc(x):
+            # USE THIS FOR LATEST TRANSFERS IN WEEK
+            x['net_transfers_rank']=x.loc[:,['transfers_balance']].rank(method='dense', ascending=False)
+            return x
+
+        def rank_total_calc(x):
+            col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
+            x['total_sum_rank']=x[col_list_1].sum(axis=1)
+            x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
+            return x
+
+        latest_df = weekly_transfers_historical(latest_df)
+        latest_df = rank_calc(latest_df)
+        latest_df = rank_total_calc(latest_df)
+
+        cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
+        'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank','transfers_balance',
+        'last_38_ppg','last_19_ppg','games_total','last_38_games','selected']
+        cols = cols_to_move + [col for col in latest_df if col not in cols_to_move]
+        latest_df=((latest_df[cols].sort_values(by=['totals_ranked'],ascending=True)))
+        # latest_df=latest_df.loc[:['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
+        # 'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank']]
+        raw_data.append(latest_df)
+    df1 = pd.concat(raw_data, ignore_index=True)
+    # future_week=20
+    # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_1.csv')
 
 
 with st.expander('Analyse GW data Player Level'):
     @st.cache
     def load_data(x):
         return pd.read_csv(x)
-    data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date.csv')
+    data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_1.csv')
     # player_detail_data=data.copy().drop('Unnamed: 0',axis=1)
     player_detail_data=data.copy()
-    st.write((player_detail_data[player_detail_data['week']==16]).sort_values(by=['full_name']))
+    # st.write((player_detail_data[player_detail_data['week']==16]).sort_values(by=['full_name']))
 
     st.write('duplicate')
-    st.write(player_detail_data.duplicated(subset=['full_name','week']))
+    st.write(player_detail_data[player_detail_data.duplicated(subset=['full_name','week'])])
 
     player_names_pick=player_detail_data['full_name'].unique()
     names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick_data',index=0)
@@ -333,7 +404,8 @@ with st.expander('Analyse GW data Player Level'):
     st.write(player_selected_detail_by_week.style.format(format_mapping))
     # st.write(data)
     
-
+with st.expander('Adding in future gameweek'):
+    pass
 
 with st.expander('Graph GW data'):
     data=data[data['games_2022_rolling']>0]
@@ -349,6 +421,82 @@ with st.expander('Graph GW data'):
     # https://altair-viz.github.io/gallery/layered_heatmap_text.html
     # https://vega.github.io/vega/docs/schemes/
     text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
-    st.write('check marcus rashford week 16 in 2022 in 3 times??')
+    # st.write('check marcus rashford week 16 in 2022 in 3 times??')
+
+    st.altair_chart(chart_cover + text_cover,use_container_width=True)
+
+with st.expander('Graph FW data'):
+    data=data[data['games_2022_rolling']>0]
+    data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
+    stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
+    stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
+    # st.write(stdc_df.sort_values(by=['Team','Week']))
+    fw=stdc_df[stdc_df['Position']=='FW'].copy()
+
+    stdc_pivot=pd.pivot_table(fw,index='Team', columns='Week')
+    stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
+    chart_cover= alt.Chart(fw).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
+    # https://altair-viz.github.io/gallery/layered_heatmap_text.html
+    # https://vega.github.io/vega/docs/schemes/
+    text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
+    # st.write('check marcus rashford week 16 in 2022 in 3 times??')
+
+    st.altair_chart(chart_cover + text_cover,use_container_width=True)
+
+with st.expander('Graph MD data'):
+    data=data[data['games_2022_rolling']>0]
+    data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
+    stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
+    stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
+    # st.write(stdc_df.sort_values(by=['Team','Week']))
+    fw=stdc_df[stdc_df['Position']=='MD'].copy()
+
+    stdc_pivot=pd.pivot_table(fw,index='Team', columns='Week')
+    stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
+    chart_cover= alt.Chart(fw).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
+    # https://altair-viz.github.io/gallery/layered_heatmap_text.html
+    # https://vega.github.io/vega/docs/schemes/
+    text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
+    # st.write('check marcus rashford week 16 in 2022 in 3 times??')
+
+    st.altair_chart(chart_cover + text_cover,use_container_width=True)
+
+with st.expander('Graph DF data'):
+    data=data[data['games_2022_rolling']>0]
+    data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
+    stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
+    stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
+    # st.write(stdc_df.sort_values(by=['Team','Week']))
+    fw=stdc_df[stdc_df['Position']=='DF'].copy()
+
+    stdc_pivot=pd.pivot_table(fw,index='Team', columns='Week')
+    stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
+    chart_cover= alt.Chart(fw).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
+    # https://altair-viz.github.io/gallery/layered_heatmap_text.html
+    # https://vega.github.io/vega/docs/schemes/
+    text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
+    # st.write('check marcus rashford week 16 in 2022 in 3 times??')
+
+    st.altair_chart(chart_cover + text_cover,use_container_width=True)
+
+with st.expander('Graph GK data'):
+    data=data[data['games_2022_rolling']>0]
+    data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
+    stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
+    stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
+    # st.write(stdc_df.sort_values(by=['Team','Week']))
+    fw=stdc_df[stdc_df['Position']=='GK'].copy()
+
+    stdc_pivot=pd.pivot_table(fw,index='Team', columns='Week')
+    stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
+    chart_cover= alt.Chart(fw).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
+    # https://altair-viz.github.io/gallery/layered_heatmap_text.html
+    # https://vega.github.io/vega/docs/schemes/
+    text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
+    # st.write('check marcus rashford week 16 in 2022 in 3 times??')
 
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
