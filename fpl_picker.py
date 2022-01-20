@@ -319,7 +319,7 @@ with st.expander('Player Stats Latest'):
 # with st.expander('TEST RUN'):
 #     st.write('full df',full_df['full_name'])
 #     raw_data = []
-#     for n in range(1,22): 
+#     for n in range(1,23): 
 #         # @st.cache(suppress_st_warning=True)
 #         def find_latest_player_stats(x):
 #             # week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
@@ -510,7 +510,7 @@ with st.expander('Graph GK data'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('GW Graph with Latest Transfers'):
-    current_week=21
+    current_week=22
     test_data=data_for_processing_current_transfers.drop(['transfers_balance'],axis=1).copy()
     current_data_week=(test_data[test_data['week']==current_week]).copy()
     # st.write(current_data_week.sort_values(by=['Clean_Pts'],ascending=False))
@@ -537,6 +537,7 @@ with st.expander('GW Graph with Latest Transfers'):
     current_data_week=rank_total_calc(current_data_week)
     current_data_week['week']=current_week+1
     current_data_week=current_data_week[current_data_week['games_2022_rolling']>0]
+    st.write('Projections', current_data_week.drop(['Unnamed: 0'],axis=1).set_index('full_name').sort_values(by=['totals_ranked'],ascending=True))
     current_data_week=current_data_week.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     current_data_week_df=current_data_week.loc[:,['Week','Team','cover','Position']].copy()
     stdc_df=pd.concat([merge_historical_stdc_df,current_data_week_df])
