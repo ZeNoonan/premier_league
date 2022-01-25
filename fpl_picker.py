@@ -1,4 +1,3 @@
-from numpy.core.numeric import full
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -316,81 +315,87 @@ with st.expander('Player Stats Latest'):
 #     df1 = pd.concat(raw_data, ignore_index=True)
 #     # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_1.csv')
 
-# with st.expander('TEST RUN'):
-#     st.write('full df',full_df['full_name'])
-#     raw_data = []
-#     for n in range(1,23): 
-#         # @st.cache(suppress_st_warning=True)
-#         def find_latest_player_stats(x):
-#             # week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
-#             x=x[x['week'] == n]
-#             x = x.sort_values(by=['year', 'week','games_2022_rolling'], ascending=[False, False,False]).drop_duplicates('full_name')
-#             # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
-#             return x[x['year'] == 2022]
+with st.expander('To run the GW analysis'):
+    def run_gw_analysis():
+    # st.write('full df',full_df['full_name'])
+        raw_data = []
+        for n in range(1,23): 
+            # @st.cache(suppress_st_warning=True)
+            def find_latest_player_stats(x):
+                # week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
+                x=x[x['week'] == n]
+                x = x.sort_values(by=['year', 'week','games_2022_rolling'], ascending=[False, False,False]).drop_duplicates('full_name')
+                # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
+                return x[x['year'] == 2022]
 
-#         latest_df = find_latest_player_stats(full_df)
-#         # st.write('check this latest df', latest_df[latest_df['full_name'].str.contains('bowen')])
-#         latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
-        
-#         def ranked_players(x):
-#             # only want players who played greater than a season ie 38 games big sample size
-#             x = x[x['games_total']>38]
-#             x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
-#             return x
+            latest_df = find_latest_player_stats(full_df)
+            # st.write('check this latest df', latest_df[latest_df['full_name'].str.contains('bowen')])
+            latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
+            
+            def ranked_players(x):
+                # only want players who played greater than a season ie 38 games big sample size
+                x = x[x['games_total']>38]
+                # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
+                x['ppg_76_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+                return x
 
-#         def value_rank(x):
-#             x['total_selected']=9000000
-#             x['%_selected']=x['selected'] / x['total_selected']
-#             x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
-#             # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
-#             x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
-#             x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
-#             return x
+            def value_rank(x):
+                x['total_selected']=9000000
+                x['%_selected']=x['selected'] / x['total_selected']
+                # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
+                # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.75)
+                x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.5)
+                # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
+                x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
+                x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
+                return x
 
-#         latest_df = ranked_players(latest_df)
-#         latest_df = value_rank(latest_df)
+            latest_df = ranked_players(latest_df)
+            latest_df = value_rank(latest_df)
 
-#         weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
-#         def merge_latest_transfers(x):
-#             return pd.merge(x,weekly_transfers_in,on=['full_name'],how='left')
+            weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
+            def merge_latest_transfers(x):
+                return pd.merge(x,weekly_transfers_in,on=['full_name'],how='left')
 
-#         def weekly_transfers_historical(x):
-#             x['transfers_balance']=x['transfers_in']-x['transfers_out']
-#             return x
+            def weekly_transfers_historical(x):
+                x['transfers_balance']=x['transfers_in']-x['transfers_out']
+                return x
 
-#         def rank_calc(x):
-#             # USE THIS FOR LATEST TRANSFERS IN WEEK
-#             x['net_transfers_rank']=x.loc[:,['transfers_balance']].rank(method='dense', ascending=False)
-#             return x
+            def rank_calc(x):
+                # USE THIS FOR LATEST TRANSFERS IN WEEK
+                x['net_transfers_rank']=x.loc[:,['transfers_balance']].rank(method='dense', ascending=False)
+                return x
 
-#         def rank_total_calc(x):
-#             col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
-#             x['total_sum_rank']=x[col_list_1].sum(axis=1)
-#             x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
-#             return x
+            def rank_total_calc(x):
+                col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
+                x['total_sum_rank']=x[col_list_1].sum(axis=1)
+                x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
+                return x
 
-#         latest_df = weekly_transfers_historical(latest_df)
-#         latest_df = rank_calc(latest_df)
-#         latest_df = rank_total_calc(latest_df)
+            latest_df = weekly_transfers_historical(latest_df)
+            latest_df = rank_calc(latest_df)
+            latest_df = rank_total_calc(latest_df)
 
-#         cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
-#         'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank','transfers_balance',
-#         'last_38_ppg','last_19_ppg','games_total','last_38_games','selected']
-#         cols = cols_to_move + [col for col in latest_df if col not in cols_to_move]
-#         latest_df=((latest_df[cols].sort_values(by=['totals_ranked'],ascending=True)))
-#         # latest_df=latest_df.loc[:['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
-#         # 'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank']]
-#         raw_data.append(latest_df)
-#     df1 = pd.concat(raw_data, ignore_index=True)
-#     future_week=20
-#     df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_1.csv')
+            cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
+            'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank','transfers_balance',
+            'last_38_ppg','last_19_ppg','games_total','last_38_games','selected']
+            cols = cols_to_move + [col for col in latest_df if col not in cols_to_move]
+            latest_df=((latest_df[cols].sort_values(by=['totals_ranked'],ascending=True)))
+            # latest_df=latest_df.loc[:['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
+            # 'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank']]
+            raw_data.append(latest_df)
+        df1 = pd.concat(raw_data, ignore_index=True)
+        future_week=20
+        df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
+        return df1
+    # run_gw_analysis()
 
 
 with st.expander('Analyse GW data Player Level'):
     # @st.cache
     def load_data(x):
         return pd.read_csv(x)
-    data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_1.csv')
+    data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
     data_for_processing_current_transfers=data.copy()
     # st.write(data)
     # st.write(data[data['full_name'].str.contains('bowen')])
@@ -409,9 +414,6 @@ with st.expander('Analyse GW data Player Level'):
     st.write(player_selected_detail_by_week.style.format(format_mapping))
     # st.write(data)
     
-with st.expander('Adding in future gameweek'):
-    pass
-
 with st.expander('Graph GW data'):
     data=data[data['games_2022_rolling']>0]
     st.write(data[data['full_name'].str.contains('bowen')])
@@ -509,7 +511,7 @@ with st.expander('Graph GK data'):
 
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
-with st.expander('GW Graph with Latest Transfers'):
+with st.expander('GW Detail with Latest Transfers'):
     current_week=22
     test_data=data_for_processing_current_transfers.drop(['transfers_balance'],axis=1).copy()
     current_data_week=(test_data[test_data['week']==current_week]).copy()
@@ -537,13 +539,30 @@ with st.expander('GW Graph with Latest Transfers'):
     current_data_week=rank_total_calc(current_data_week)
     current_data_week['week']=current_week+1
     current_data_week=current_data_week[current_data_week['games_2022_rolling']>0]
-    st.write('Projections', current_data_week.drop(['Unnamed: 0'],axis=1).set_index('full_name').sort_values(by=['totals_ranked'],ascending=True))
+    current_week_projections = current_data_week.drop(['Unnamed: 0'],axis=1).set_index('full_name').sort_values(by=['totals_ranked'],ascending=True) 
+    st.write('Projections', current_week_projections.style.format(format_mapping))
+    
+with st.expander('GW Graph with Latest Transfers'):    
     current_data_week=current_data_week.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     current_data_week_df=current_data_week.loc[:,['Week','Team','cover','Position']].copy()
     stdc_df=pd.concat([merge_historical_stdc_df,current_data_week_df])
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
+    my_players_data=stdc_df.copy()
     stdc_pivot=pd.pivot_table(stdc_df,index='Team', columns='Week')
     stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
+    chart_cover= alt.Chart(stdc_df).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
+    # https://altair-viz.github.io/gallery/layered_heatmap_text.html
+    # https://vega.github.io/vega/docs/schemes/
+    text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
+    st.altair_chart(chart_cover + text_cover,use_container_width=True)
+
+with st.expander('GW Graph with My Players'):
+    my_players=['harry_kane','marcos_alonso','bruno miguel_borges fernandes','trent_alexander-arnold',
+    'michail_antonio','joão pedro cavaco_cancelo','mason_mount','jarrod_bowen','diogo_jota']
+
+    # st.write(my_players_data)
+    stdc_df=my_players_data[my_players_data['Team'].isin(my_players)]
     chart_cover= alt.Chart(stdc_df).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
     alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
     # https://altair-viz.github.io/gallery/layered_heatmap_text.html
