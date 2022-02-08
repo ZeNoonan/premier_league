@@ -11,6 +11,9 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
+future_gameweek=24
+current_week=23
+
 with st.expander('Data Prep'):
 
     file_location_2022='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2022.csv'
@@ -319,7 +322,7 @@ with st.expander('To run the GW analysis'):
     def run_gw_analysis():
     # st.write('full df',full_df['full_name'])
         raw_data = []
-        for n in range(1,23): 
+        for n in range(1,future_gameweek): 
             # @st.cache(suppress_st_warning=True)
             def find_latest_player_stats(x):
                 # week_no = st.number_input ("Week number?", min_value=int(1),value=int(20))
@@ -388,7 +391,7 @@ with st.expander('To run the GW analysis'):
         future_week=20
         df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
         return df1
-    # run_gw_analysis()
+    run_gw_analysis()
 
 
 with st.expander('Analyse GW data Player Level'):
@@ -512,7 +515,7 @@ with st.expander('Graph GK data'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('GW Detail with Latest Transfers'):
-    current_week=22
+    # current_week=22
     test_data=data_for_processing_current_transfers.drop(['transfers_balance'],axis=1).copy()
     current_data_week=(test_data[test_data['week']==current_week]).copy()
     # st.write(current_data_week.sort_values(by=['Clean_Pts'],ascending=False))
