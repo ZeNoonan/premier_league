@@ -11,19 +11,21 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-future_gameweek=24
-current_week=23
+future_gameweek=25
+current_week=24
 
 with st.expander('Data Prep'):
 
     file_location_2022='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2022.csv'
     file_location_2021='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2021.csv'
     file_location_2020='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2020.csv'
+    file_location_2019='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2019.csv'
     
 
     url2022 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2021-22/players_raw.csv'
     url2021 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2020-21/players_raw.csv'
     url2020 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2019-20/players_raw.csv'
+    url2019 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2018-19/players_raw.csv'
 
     col_selection_url=['id','element_type','first_name','second_name']
     col_selection_url_2020=['id','element_type','first_name','second_name','team']
@@ -40,6 +42,13 @@ with st.expander('Data Prep'):
         18:'Watford',19:'West_Ham',20:'Wolves'})
         return file
 
+    @st.cache(suppress_st_warning=True)
+    def data_2019_team_names(file):
+        file['team'] = file['team'].map({1: 'Arsenal', 2: 'Bournemouth', 3:'Brighton', 4:'Burnley',5:'Cardiff',6:'Chelsea',7:'Crystal_Palace',
+        8:'Everton',9:'Fulham',10:'Huddersfield',11:'Leicester',12:'Liverpool',13:'Man_City',14:'Man_Utd',15:'Newcastle',16:'Southampton',17:'Spurs',
+        18:'Watford',19:'West_Ham',20:'Wolves'})
+        return file
+
     col_selection_week=['team','bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
     'value','week','year']
     col_selection_week_2020=['bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
@@ -48,12 +57,18 @@ with st.expander('Data Prep'):
     url_csv_2021=read_data(url2021,col_selection_url)
     url_csv_2020=read_data(url2020,col_selection_url_2020).copy()
     url_csv_2020=data_2020_team_names(url_csv_2020)
+
+    url_csv_2019=read_data(url2019,col_selection_url_2020).copy()
+    url_csv_2019=data_2019_team_names(url_csv_2019)
+
+
     # url_csv_2020=data_2020_team_names((read_data(url2020,col_selection_url_2020).copy()))
     # st.write('master data 2020',url_csv_2020.head())
     df_week_data_raw_2022 = read_data(file_location_2022,col_selection_week)
     df_week_data_raw_2021 = read_data(file_location_2021,col_selection_week)
     # st.write('2020 raw data weekly',pd.read_csv(file_location_2020).head())
     df_week_data_raw_2020 = read_data(file_location_2020,col_selection_week_2020)
+    df_week_data_raw_2019 = read_data(file_location_2019,col_selection_week_2020)
     # st.write(df_week_data_raw_2022.head())
 
     @st.cache
@@ -87,13 +102,14 @@ with st.expander('Data Prep'):
     data_2022 = (( (prep_base_data(url_csv_2022, df_week_data_raw_2022))))
     data_2021 = (( (prep_base_data(url_csv_2021, df_week_data_raw_2021))))
     data_2020 = (( (prep_base_data(url_csv_2020, df_week_data_raw_2020)))).copy()
+    data_2019 = (( (prep_base_data(url_csv_2019, df_week_data_raw_2019)))).copy()
     data_2020 = data_2020_clean_double_gw(data_2020)
 
     @st.cache(suppress_st_warning=True)
-    def combine_dataframes(a,b,c):
-        return pd.concat ([a,b,c], axis=0,sort = True)
+    def combine_dataframes(a,b,c,d):
+        return pd.concat ([a,b,c,d], axis=0,sort = True)
 
-    full_df = combine_dataframes(data_2022,data_2021,data_2020).drop(['fixture','round'],axis=1).copy()
+    full_df = combine_dataframes(data_2022,data_2021,data_2020,data_2019).drop(['fixture','round'],axis=1).copy()
     
 
     # st.write(data_2022.head())
@@ -176,7 +192,7 @@ with st.expander('Player Stats Latest'):
 
     # @st.cache(suppress_st_warning=True)
     def find_latest_player_stats(x):
-        week_no = st.number_input ("Week number?", min_value=int(1),value=int(21))
+        week_no = st.number_input ("Week number?", min_value=int(1),value=int(current_week))
         x=x[x['week'] == week_no]
         x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
         # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
@@ -419,17 +435,17 @@ with st.expander('Analyse GW data Player Level'):
     
 with st.expander('Graph GW data'):
     data=data[data['games_2022_rolling']>0]
-    st.write(data[data['full_name'].str.contains('bowen')])
+    # st.write(data[data['full_name'].str.contains('bowen')])
     data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
-    # data=data
     stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
     merge_historical_stdc_df=stdc_df.copy()
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
     # st.write(stdc_df.sort_values(by=['Team','Week']))
+    gw=stdc_df[stdc_df['Position']=='GK'].copy()
 
-    stdc_pivot=pd.pivot_table(stdc_df,index='Team', columns='Week')
+    stdc_pivot=pd.pivot_table(gw,index='Team', columns='Week')
     stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
-    chart_cover= alt.Chart(stdc_df).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    chart_cover= alt.Chart(gw).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
     alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
     # https://altair-viz.github.io/gallery/layered_heatmap_text.html
     # https://vega.github.io/vega/docs/schemes/
@@ -561,8 +577,9 @@ with st.expander('GW Graph with Latest Transfers'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('GW Graph with My Players'):
-    my_players=['harry_kane','marcos_alonso','bruno miguel_borges fernandes','trent_alexander-arnold',
-    'michail_antonio','joão pedro cavaco_cancelo','mason_mount','jarrod_bowen','diogo_jota']
+    my_players=['harry_kane','gabriel teodoro_martinelli silva','bruno miguel_borges fernandes','trent_alexander-arnold',
+    'michail_antonio','joão pedro cavaco_cancelo','mason_mount','jarrod_bowen','diogo_jota','hugo_lloris','fernando_marçal',
+    'matthew_lowton','ben_foster','joshua_king']
 
     # st.write(my_players_data)
     stdc_df=my_players_data[my_players_data['Team'].isin(my_players)]
