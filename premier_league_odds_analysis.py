@@ -10,33 +10,46 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
+current_week=25
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
     # dfa[0].to_pickle('C:/Users/Darragh/Documents/Python/premier_league/scores.pkl')
     # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
-    df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
+    df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv',parse_dates=['Date'])
     # st.write(df)
 
     df=df.dropna(subset=['Wk'])
+
+    def convert_df(df):
+     # IMPORTANT: Cache the conversion to prevent computation on every rerun
+        return df.to_csv().encode('utf-8')
+    # csv = convert_df(df)
+    # st.download_button(label="Download data as CSV",data=csv,file_name='df.csv',mime='text/csv',key='scores')
+
+
     # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
-    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx')
-    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year.xlsx')
+    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx',parse_dates=['Date'])
+    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year.xlsx',parse_dates=['Date'])
+    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_dummy.xlsx',parse_dates=['Date'])
+    # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_dummy.xlsx',parse_dates=['Date'])
+
     def concat_current_prior(x,y):
         current_plus_prior = pd.concat([x,y],axis=0,ignore_index=True)
         return current_plus_prior
 
     odds=concat_current_prior(odds,prior_data)
-    # st.write(odds)
-    merged_df = pd.merge(df,odds,on=['Wk','Home','Away'],how='outer').drop(['xG_y','Score_y','xG.1_y','Day_y','Date_y'],axis=1)\
-        .rename(columns={'xG_x':'xG','xG.1_x':'xG.1','Score_x':'Score','Day_x':'Day','Date_x':'Date','Home':'Home Team','Away':'Away Team','Wk':'Week'})
+    # st.write('Date type in odds',odds['Date'].dtype)
+    # st.write('Date type in df',df['Date'].dtype)
+    merged_df = pd.merge(df,odds,on=['Date','Home','Away'],how='outer').drop(['xG_y','Score_y','xG.1_y','Day_y','Wk_x'],axis=1)\
+        .rename(columns={'xG_x':'xG','xG.1_x':'xG.1','Score_x':'Score','Day_x':'Day','Date_x':'Date','Home':'Home Team','Away':'Away Team','Wk_y':'Week'})
     # st.write('merged df',merged_df)
     # https://stackoverflow.com/questions/35552874/get-first-letter-of-a-string-from-column
     merged_df['Home Points'] = [str(x)[0] for x in merged_df['Score']]
     merged_df['Away Points'] = [str(x)[2] for x in merged_df['Score']]
-    merged_df['home_spread']=-merged_df['Spread']
-    merged_df['away_spread']=merged_df['Spread']
+    merged_df['home_spread']=merged_df['Spread']
+    merged_df['away_spread']=-merged_df['Spread']
     merged_df=merged_df[merged_df['Notes']!='Match Postponed']
     merged_df['Home Points']=merged_df['Home Points'].replace({'n':np.NaN})
     merged_df['Away Points']=merged_df['Away Points'].replace({'n':np.NaN})
@@ -44,35 +57,61 @@ with st.expander('df'):
     merged_df['Away Points']=pd.to_numeric(merged_df['Away Points'])
     # st.write(merged_df.dtypes)
     data=merged_df
+    # csv = convert_df(data)
+    # st.download_button(label="Download data as CSV",data=csv,file_name='df.csv',mime='text/csv',key='after_merge')
     # st.write(data)
 
     def spread_workings(data):
         data['home_win']=data['Home Points'] - data['Away Points']
         data['home_win'] = np.where((data['Home Points'] > data['Away Points']), 1, np.where((data['Home Points'] < data['Away Points']),-1,0))
+        
         data['home_cover']=(np.where(((data['Home Points'] + data['Spread']) > data['Away Points']), 1,
         np.where(((data['Home Points']+ data['Spread']) < data['Away Points']),-1,0)))
-        data['home_cover']=data['home_cover'].astype(int)
+        
+        data['first_spread']=(np.where(((data['Home Points'] + (data['Spread']+0.25)) > data['Away Points']), 1,
+        np.where(((data['Home Points']+ data['Spread']) < data['Away Points']),-1,0)))*.5
+        data['second_spread']=(np.where(((data['Home Points'] + (data['Spread']-0.25)) > data['Away Points']), 1,
+        np.where(((data['Home Points']+ data['Spread']) < data['Away Points']),-1,0)))*.5
+        data['home_cover']=data['first_spread']+data['second_spread']
+
+        # data['home_cover']=data['home_cover'].astype(int)
+        data['home_cover']=data['home_cover'].astype(float)
         data['away_cover'] = -data['home_cover']
         return data
 
+    # def spread_workings_new(data):
+    #     data['first_spread']=(np.where(((data['Home Points'] + (data['Spread']+0.25)) > data['Away Points']), 1,
+    #     np.where(((data['Home Points']+ data['Spread']) < data['Away Points']),-1,0)))*.5
+    #     data['second_spread']=(np.where(((data['Home Points'] + (data['Spread']-0.25)) > data['Away Points']), 1,
+    #     np.where(((data['Home Points']+ data['Spread']) < data['Away Points']),-1,0)))*.5
+    #     data['home_cover']=data['first_spread']+data['second_spread']
+    #     return data
+
+
     spread=spread_workings(data)
-    # st.write(spread)
+    # test_spread=spread_workings_new(data)
+    st.write('test spread',spread)
 
     team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx', sheet_name='Sheet2')
     # st.write(team_names_id)
     team_names_id=team_names_id.rename(columns={'team':'Home Team'})
+    # st.write('this is spread before merge', spread)
+    # st.write('Date dtype', spread['Date'].dtype)
+    # st.write('this is team names id before merge', team_names_id)
     odds_data=pd.merge(spread,team_names_id,on='Home Team').rename(columns={'ID':'Home ID'}).sort_values(by='Date',ascending=False)
     team_names_id=team_names_id.rename(columns={'Home Team':'Away Team'})
     odds_data=pd.merge(odds_data,team_names_id,on='Away Team').rename(columns={'ID':'Away ID'}).sort_values(by='Date',ascending=False)
-    st.write(odds_data)
+    # st.write(odds_data)
 
     matrix_df=odds_data.reset_index().rename(columns={'index':'unique_match_id'})
     test_df = matrix_df.copy()
     # st.write('check for unique match id', test_df)
     matrix_df['at_home'] = 1
     matrix_df['at_away'] = -1
+
     matrix_df['home_pts_adv'] = -0.25
     matrix_df['away_pts_adv'] = 0.25
+
 
     test_df_1=matrix_df.loc[:,['unique_match_id','Week','Home ID','Away ID','at_home','at_away','home_spread','away_spread','home_pts_adv','away_pts_adv']].copy()
     test_df_home=test_df_1.loc[:,['Week','Home ID','at_home','home_spread','home_pts_adv']].rename(columns={'Home ID':'ID','at_home':'home','home_spread':'spread','home_pts_adv':'home_pts_adv'}).copy()
@@ -108,7 +147,7 @@ with st.expander('df'):
         full_stack.columns = full_stack.columns.droplevel(0)
         return full_stack
     full_stack=games_matrix_workings(first_4)
-    st.write(full_stack)
+    # st.write(full_stack)
 
 def test_4(matrix_df_1):
     weights = np.array([0.125, 0.25,0.5,1])
@@ -162,7 +201,6 @@ for first,last in zip(first,last):
     result['week']=last+1
     power_ranking.append(result)
 power_ranking_combined = pd.concat(power_ranking).reset_index().rename(columns={'index':'ID'})
-st.write('power', power_ranking_combined)
 
 matches_df = matrix_df.copy()
 home_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].copy().rename(columns={'week':'Week','ID':'Home ID'})
@@ -184,7 +222,7 @@ def season_cover_workings(data,home,away,name,week_start):
     season_cover=pd.concat([home_cover_df,away_cover_df],ignore_index=True)
     # season_cover_df = pd.melt(season_cover_df,id_vars=['Week', 'home_cover'],value_vars=['Home ID', 'Away ID']).set_index('Week').rename(columns={'value':'ID'}).\
     # drop('variable',axis=1).reset_index().sort_values(by=['Week','ID'],ascending=True)
-    return season_cover.sort_values(by=['Week','Date','ID'],ascending=['True','True','True'])
+    return season_cover.sort_values(by=['Week','Date','ID'],ascending=[True,True,True])
 
 def season_cover_2(season_cover_df,column_name):    
     # https://stackoverflow.com/questions/54993050/pandas-groupby-shift-and-cumulative-sum
@@ -200,9 +238,12 @@ def season_cover_3(data,column_sign,name):
     data[column_sign] = np.where((data[name] > 0), 1, np.where((data[name] < 0),-1,0))
     return data
 
+st.write('this is the base data....check', matrix_df)
 spread_1 = season_cover_workings(matrix_df,'home_cover','away_cover','cover',0)
 spread_2=season_cover_2(spread_1,'cover')
+st.write('spread 2 should this not be adding up to 0.5 increments for some of them', spread_2)
 spread_3=season_cover_3(spread_2,'cover_sign','cover')
+st.write('spread 3', spread_3)
 
 with st.expander('Season to Date Cover Graph'):
     st.write('Positive number means the number of games to date that you have covered the spread; in other words teams with a positive number have beaten expectations')
@@ -246,7 +287,7 @@ with st.expander('Season to Date Cover Graph'):
     alt.Y('Team',sort=alt.SortField(field='average', order='descending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
     # https://altair-viz.github.io/gallery/layered_heatmap_text.html
     # https://vega.github.io/vega/docs/schemes/
-    text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('black'))
+    text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N',format=",.1f"),color=alt.value('black'))
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('Power Ranking by Week'):
@@ -259,7 +300,7 @@ with st.expander('Power Ranking by Week'):
     # st.write('graphing?',pivot_df)
     power_pivot=pd.pivot_table(pivot_df,index='Team', columns='week')
     pivot_df_test = pivot_df.copy()
-    pivot_df_test=pivot_df_test[pivot_df_test['week']<19]
+    pivot_df_test=pivot_df_test[pivot_df_test['week']<current_week+2]
     pivot_df_test['average']=pivot_df.groupby('Team')['final_power'].transform(np.mean)
     # st.write('graphing?',pivot_df_test)
     power_pivot.columns = power_pivot.columns.droplevel(0)
@@ -271,6 +312,6 @@ with st.expander('Power Ranking by Week'):
     alt.Y('Team',sort=alt.SortField(field='average', order='descending')),color=alt.Color('final_power:Q',scale=alt.Scale(scheme='redyellowgreen')))
     # https://altair-viz.github.io/gallery/layered_heatmap_text.html
     # https://vega.github.io/vega/docs/schemes/
-    text=chart_power.mark_text().encode(text=alt.Text('final_power:N',format=",.0f"),color=alt.value('black'))
+    text=chart_power.mark_text().encode(text=alt.Text('final_power:N',format=",.1f"),color=alt.value('black'))
     st.altair_chart(chart_power + text,use_container_width=True)
 
