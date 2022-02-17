@@ -11,8 +11,9 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-future_gameweek=25
-current_week=24
+future_gameweek=26
+current_week=25
+current_year=2022
 
 with st.expander('Data Prep'):
 
@@ -20,12 +21,14 @@ with st.expander('Data Prep'):
     file_location_2021='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2021.csv'
     file_location_2020='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2020.csv'
     file_location_2019='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2019.csv'
+    file_location_2018='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2018.csv'
     
 
     url2022 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2021-22/players_raw.csv'
     url2021 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2020-21/players_raw.csv'
     url2020 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2019-20/players_raw.csv'
     url2019 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2018-19/players_raw.csv'
+    url2018 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2017-18/players_raw.csv'
 
     col_selection_url=['id','element_type','first_name','second_name']
     col_selection_url_2020=['id','element_type','first_name','second_name','team']
@@ -49,6 +52,13 @@ with st.expander('Data Prep'):
         18:'Watford',19:'West_Ham',20:'Wolves'})
         return file
 
+    @st.cache(suppress_st_warning=True)
+    def data_2018_team_names(file):
+        file['team'] = file['team'].map({1: 'Arsenal', 2: 'Bournemouth', 3:'Brighton', 4:'Burnley',5:'Chelsea',6:'Crystal_Palace',7:'Everton',
+        8:'Hull',9:'Leicester',10:'Liverpool',11:'Man_City',12:'Man_Utd',13:'Newcastle',14:'Southampton',15:'Stoke',16:'Swansea',17:'Spurs',
+        18:'Watford',19:'West_Brom',20:'West_Ham'})
+        return file
+
     col_selection_week=['team','bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
     'value','week','year']
     col_selection_week_2020=['bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
@@ -61,6 +71,8 @@ with st.expander('Data Prep'):
     url_csv_2019=read_data(url2019,col_selection_url_2020).copy()
     url_csv_2019=data_2019_team_names(url_csv_2019)
 
+    url_csv_2018=read_data(url2018,col_selection_url_2020).copy()
+    url_csv_2018=data_2018_team_names(url_csv_2018)
 
     # url_csv_2020=data_2020_team_names((read_data(url2020,col_selection_url_2020).copy()))
     # st.write('master data 2020',url_csv_2020.head())
@@ -69,6 +81,7 @@ with st.expander('Data Prep'):
     # st.write('2020 raw data weekly',pd.read_csv(file_location_2020).head())
     df_week_data_raw_2020 = read_data(file_location_2020,col_selection_week_2020)
     df_week_data_raw_2019 = read_data(file_location_2019,col_selection_week_2020)
+    df_week_data_raw_2018 = read_data(file_location_2018,col_selection_week_2020)
     # st.write(df_week_data_raw_2022.head())
 
     @st.cache
@@ -103,14 +116,19 @@ with st.expander('Data Prep'):
     data_2021 = (( (prep_base_data(url_csv_2021, df_week_data_raw_2021))))
     data_2020 = (( (prep_base_data(url_csv_2020, df_week_data_raw_2020)))).copy()
     data_2019 = (( (prep_base_data(url_csv_2019, df_week_data_raw_2019)))).copy()
+    data_2018 = (( (prep_base_data(url_csv_2018, df_week_data_raw_2018)))).copy()
     data_2020 = data_2020_clean_double_gw(data_2020)
 
     @st.cache(suppress_st_warning=True)
-    def combine_dataframes(a,b,c,d):
-        return pd.concat ([a,b,c,d], axis=0,sort = True)
+    def combine_dataframes(a,b,c,d,e):
+        return pd.concat ([a,b,c,d,e], axis=0,sort = True)
 
-    full_df = combine_dataframes(data_2022,data_2021,data_2020,data_2019).drop(['fixture','round'],axis=1).copy()
-    
+    @st.cache(suppress_st_warning=True)
+    def combine_dataframes_historical(a,b,c):
+        return pd.concat ([a,b,c], axis=0,sort = True)
+
+    full_df = combine_dataframes(data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
+    # full_df = combine_dataframes_historical(data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
 
     # st.write(data_2022.head())
     # st.write(data_2021.head())
@@ -120,7 +138,7 @@ with st.expander('Data Prep'):
     def column_calcs_1(df):
         df['Price'] =df['value'] / 10
         df['Game_1'] = np.where((df['minutes'] > 0.5), 1, 0)
-        df['games_2022'] = np.where((df['year'] == 2022), df['Game_1'], 0)
+        df['games_2022'] = np.where((df['year'] == current_year), df['Game_1'], 0)
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
         return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
 
@@ -196,7 +214,7 @@ with st.expander('Player Stats Latest'):
         x=x[x['week'] == week_no]
         x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
         # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
-        return x[x['year'] == 2022]
+        return x[x['year'] == current_year]
 
     latest_df = find_latest_player_stats(full_df)
     
@@ -345,7 +363,7 @@ with st.expander('To run the GW analysis'):
                 x=x[x['week'] == n]
                 x = x.sort_values(by=['year', 'week','games_2022_rolling'], ascending=[False, False,False]).drop_duplicates('full_name')
                 # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
-                return x[x['year'] == 2022]
+                return x[x['year'] == current_year]
 
             latest_df = find_latest_player_stats(full_df)
             # st.write('check this latest df', latest_df[latest_df['full_name'].str.contains('bowen')])
@@ -405,7 +423,10 @@ with st.expander('To run the GW analysis'):
             raw_data.append(latest_df)
         df1 = pd.concat(raw_data, ignore_index=True)
         future_week=20
-        df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
+
+        df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_historical.csv')
+        # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
+        
         return df1
     run_gw_analysis()
 
@@ -414,7 +435,10 @@ with st.expander('Analyse GW data Player Level'):
     # @st.cache
     def load_data(x):
         return pd.read_csv(x)
-    data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
+
+    # data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
+    data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_historical.csv')
+    
     data_for_processing_current_transfers=data.copy()
     # st.write(data)
     # st.write(data[data['full_name'].str.contains('bowen')])
@@ -440,8 +464,9 @@ with st.expander('Graph GW data'):
     stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
     merge_historical_stdc_df=stdc_df.copy()
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
-    # st.write(stdc_df.sort_values(by=['Team','Week']))
-    gw=stdc_df[stdc_df['Position']=='GK'].copy()
+    
+    # gw=stdc_df[stdc_df['Position']=='GK'].copy()
+    gw=stdc_df.copy()
 
     stdc_pivot=pd.pivot_table(gw,index='Team', columns='Week')
     stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
