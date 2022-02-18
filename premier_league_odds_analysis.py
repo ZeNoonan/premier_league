@@ -40,10 +40,13 @@ with st.expander('df'):
         return current_plus_prior
 
     odds=concat_current_prior(odds,prior_data)
+    # st.write('odds', odds)
+    # st.write('df',df)
     # st.write('Date type in odds',odds['Date'].dtype)
     # st.write('Date type in df',df['Date'].dtype)
     merged_df = pd.merge(df,odds,on=['Date','Home','Away'],how='outer').drop(['xG_y','Score_y','xG.1_y','Day_y','Wk_x'],axis=1)\
         .rename(columns={'xG_x':'xG','xG.1_x':'xG.1','Score_x':'Score','Day_x':'Day','Date_x':'Date','Home':'Home Team','Away':'Away Team','Wk_y':'Week'})
+    # st.write('merged df',merged_df[merged_df['Spread'].isna()])
     # st.write('merged df',merged_df)
     # https://stackoverflow.com/questions/35552874/get-first-letter-of-a-string-from-column
     merged_df['Home Points'] = [str(x)[0] for x in merged_df['Score']]
@@ -89,8 +92,10 @@ with st.expander('df'):
 
 
     spread=spread_workings(data)
+    workings_1=spread.copy()
     # test_spread=spread_workings_new(data)
-    st.write('test spread',spread)
+    # st.write('test spread',spread)
+
 
     team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx', sheet_name='Sheet2')
     # st.write(team_names_id)
@@ -104,6 +109,7 @@ with st.expander('df'):
     # st.write(odds_data)
 
     matrix_df=odds_data.reset_index().rename(columns={'index':'unique_match_id'})
+    # st.write('matrix df',matrix_df)
     test_df = matrix_df.copy()
     # st.write('check for unique match id', test_df)
     matrix_df['at_home'] = 1
@@ -238,12 +244,24 @@ def season_cover_3(data,column_sign,name):
     data[column_sign] = np.where((data[name] > 0), 1, np.where((data[name] < 0),-1,0))
     return data
 
-st.write('this is the base data....check', matrix_df)
+# st.write('this is the base data....check', matrix_df)
 spread_1 = season_cover_workings(matrix_df,'home_cover','away_cover','cover',0)
 spread_2=season_cover_2(spread_1,'cover')
-st.write('spread 2 should this not be adding up to 0.5 increments for some of them', spread_2)
+# st.write('spread 2 should this not be adding up to 0.5 increments for some of them', spread_2)
 spread_3=season_cover_3(spread_2,'cover_sign','cover')
-st.write('spread 3', spread_3)
+# st.write('spread 3', spread_3)
+
+with st.expander('Turnover equival workings xg'):
+    # workings_1=spread.copy()
+    st.write('workings any dupicates in here??',workings_1)
+    workings_1['xg_margin']=workings_1['xG']-workings_1['xG.1']
+    workings_1['home_xg_win']=np.where(workings_1['xg_margin']>1.0,1,np.where(workings_1['xg_margin']<-1.0,-1,0))
+    cols_to_move=['Time','Home Team','xG','Score','xG.1','Away Team','xg_margin','home_xg_win','home_win']
+    cols = cols_to_move + [col for col in workings_1 if col not in cols_to_move]
+    workings_1=workings_1[cols]
+    st.write(workings_1)
+
+
 
 with st.expander('Season to Date Cover Graph'):
     st.write('Positive number means the number of games to date that you have covered the spread; in other words teams with a positive number have beaten expectations')
