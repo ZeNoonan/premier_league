@@ -603,7 +603,7 @@ with st.expander('GW Graph with Latest Transfers'):
 
 with st.expander('GW Graph with My Players'):
     my_players=['harry_kane','gabriel teodoro_martinelli silva','bruno miguel_borges fernandes','trent_alexander-arnold',
-    'michail_antonio','joão pedro cavaco_cancelo','mason_mount','jarrod_bowen','diogo_jota','hugo_lloris','fernando_marçal',
+    'joão pedro cavaco_cancelo','riyad_mahrez','jarrod_bowen','diogo_jota','hugo_lloris','fernando_marçal',
     'matthew_lowton','ben_foster','joshua_king']
 
     # st.write(my_players_data)
