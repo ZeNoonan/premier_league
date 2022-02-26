@@ -7,8 +7,8 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=25
-finished_week=25
+current_week=23
+finished_week=23
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
@@ -17,8 +17,21 @@ placeholder_2=st.empty()
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
     # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
-    df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
     
+    
+    # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
+    
+    @st.cache
+    def read_csv_data(file):
+        return pd.read_csv(file)
+
+    @st.cache
+    def read_csv_data_date(file):
+        return pd.read_csv(file,parse_dates=['Date'])
+
+    df=read_csv_data_date('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
+
+
     df=df.dropna(subset=['Wk'])
     # df['Home']=df['Home'].astype(str).str.lower()
     # df['Away']=df['Home'].astype(str).str.lower()
@@ -123,6 +136,9 @@ with st.expander('df'):
 
     matrix_df['home_pts_adv'] = -0.25
     matrix_df['away_pts_adv'] = 0.25
+    # matrix_df['home_pts_adv'] = 0
+    # matrix_df['away_pts_adv'] = 0
+
 
 
     test_df_1=matrix_df.loc[:,['unique_match_id','Week','Home ID','Away ID','at_home','at_away','home_spread','away_spread','home_pts_adv','away_pts_adv']].copy()
@@ -141,6 +157,7 @@ with st.expander('df'):
         group_week = first_4.groupby('Week')
         raw_data_2=[]
         game_weights = iter([-0.125, -0.25,-0.5,-1])
+        # game_weights = iter([-1, -1,-1,-1])
         for name, group in group_week:
             group['game_adj']=next(game_weights)
             # st.write('looking at for loop',group)
@@ -163,6 +180,7 @@ with st.expander('df'):
 
 def test_4(matrix_df_1):
     weights = np.array([0.125, 0.25,0.5,1])
+    # weights = np.array([1, 1,1,1])
     sum_weights = np.sum(weights)
     matrix_df_1['adj_spread']=matrix_df_1['spread_with_home_adv'].rolling(window=4, center=False).apply(lambda x: np.sum(weights*x), raw=False)
     return matrix_df_1
@@ -199,14 +217,14 @@ last=list(range(0,38))
 for first,last in zip(first,last):
     first_section=games_df[games_df['Week'].between(first,last)]
     full_game_matrix=games_matrix_workings(first_section)
-    adjusted_matrix=full_game_matrix.loc[0:18,0:18]
+    adjusted_matrix=full_game_matrix.loc[0:16,0:16]
     df_inv = pd.DataFrame(np.linalg.pinv(adjusted_matrix.values), adjusted_matrix.columns, adjusted_matrix.index)
     power_df_week=power_df[power_df['Week']==last].drop_duplicates(subset=['ID'],keep='last').set_index('ID')\
-    .drop('Week',axis=1).rename(columns={'adj_spread':0}).loc[:18,:]
+    .drop('Week',axis=1).rename(columns={'adj_spread':0}).loc[:16,:]
     result = df_inv.dot(pd.DataFrame(power_df_week))
     result.columns=['power']
-    avg=(result['power'].sum())/20
-    result['avg_pwr_rank']=(result['power'].sum())/20
+    avg=(result['power'].sum())/18
+    result['avg_pwr_rank']=(result['power'].sum())/18
     result['final_power']=result['avg_pwr_rank']-result['power']
     df_pwr=pd.DataFrame(columns=['final_power'],data=[avg])
     result=pd.concat([result,df_pwr],ignore_index=True)
@@ -658,7 +676,7 @@ with placeholder_1.expander('Weekly Results'):
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
     df9 = df9.format(formatter="{:.0%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     st.write(df9)
 
@@ -697,7 +715,7 @@ with st.expander('Analysis of Factors'):
         df_table_1=df_table_1.reset_index()
         # st.write('reset data', df_table_1)
         df_table_1['index']=df_table_1['index'].astype(str)
-        df_table_1=df_table_1.set_index('index')
+        df_table_1=df_table_1.set_index('index').sort_index(ascending=False).fillna(0)
 
 
         df_table_1.loc['Total']=df_table_1.sum()
@@ -742,6 +760,7 @@ with st.expander('Analysis of Factors'):
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     st.write(bets_made_factor_table_presentation)
 
+
     # st.write('graph work below')
     graph_factor_table = total_factor_table.copy().loc[['-1.0','0.0','1.0'],:].reset_index().rename(columns={'index':'result_all'})
     graph_factor_table['result_all']=graph_factor_table['result_all'].replace({'0.0':'tie','1.0':'win','-1.0':'lose'})
@@ -774,6 +793,32 @@ with st.expander('Analysis of Factors'):
     updated_test_chart=chart_power+vline+text
     
     st.altair_chart(updated_test_chart,use_container_width=True)
+
+with st.expander('Deep Dive on Power Factor'):
+    power_factor_analysis = analysis_factors.copy()
+    power_factor_analysis['power_ranking_success?'] = power_factor_analysis['power_pick'] * power_factor_analysis['home_cover_result']
+    power_factor_analysis['home_power_less_away'] = power_factor_analysis['away_power']-power_factor_analysis['home_power']
+    power_factor_analysis['power_margin'] = power_factor_analysis['home_power_less_away'] - power_factor_analysis['Spread']
+    cols_to_move=['Week','Date','Home Team','Away Team','Spread','home_power_less_away','power_margin','power_ranking_success?','home_power','away_power']
+    power_factor_analysis = power_factor_analysis[ cols_to_move + [ col for col in power_factor_analysis if col not in cols_to_move ] ]
+    week_power_analysis=power_factor_analysis.groupby(['Week'])['power_ranking_success?'].sum().reset_index()
+    decile_df=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'], 10))['power_ranking_success?'].sum()
+    decile_df_abs=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'].abs(), 10))['power_ranking_success?'].sum()
+    st.write(decile_df)
+    st.write(decile_df_abs)
+    
+    st.write(week_power_analysis)
+
+    decile_df_abs_spread=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['Spread'].abs(), q=10,duplicates='drop'))['power_ranking_success?'].sum()
+    st.write('breaks out Spread')
+    st.write(decile_df_abs_spread)
+
+    decile_df_abs_home=power_factor_analysis.groupby(['power_pick'])['power_ranking_success?'].sum()
+    st.write('breaks out Home Away')
+    st.write(decile_df_abs_home)
+
+    # st.write( power_factor_analysis[(power_factor_analysis['Home Team'].str.contains('Hoffen') | power_factor_analysis['Away Team'].str.contains('Hoffen'))] )
+    # st.write(power_factor_analysis)
 
 
     # st.write(graph_factor_table)
