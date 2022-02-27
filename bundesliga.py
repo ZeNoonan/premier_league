@@ -817,9 +817,45 @@ with st.expander('Deep Dive on Power Factor'):
     st.write('breaks out Home Away')
     st.write(decile_df_abs_home)
 
+
+    decile_df_abs_home_1=power_factor_analysis.groupby(['Week','power_pick'])['power_ranking_success?'].sum().reset_index()
+    decile_df_abs_home_1=power_factor_analysis.groupby(['Week','power_pick']).agg(
+        power_ranking_success=('power_ranking_success?','sum'),count=('power_pick','count')).reset_index()
+    # st.write('testing', test_replicate)
+    decile_df_abs_home_1['test_sum']=decile_df_abs_home_1.groupby(['Week'])['power_ranking_success'].transform('sum')
+    st.write('breaks out Home Away by week')
+    st.write(decile_df_abs_home_1)
     # st.write( power_factor_analysis[(power_factor_analysis['Home Team'].str.contains('Hoffen') | power_factor_analysis['Away Team'].str.contains('Hoffen'))] )
     # st.write(power_factor_analysis)
 
+    scale_3=alt.Scale(domain=['1','-1'],range=['blue','red'])
+    line_cover= alt.Chart(decile_df_abs_home_1).mark_line().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    
+    alt.Y('power_ranking_success'),color=alt.Color('power_pick:Q',scale=scale_3))
+    text_cover=line_cover.mark_text(baseline='middle',dx=20,dy=-5).encode(text=alt.Text('power_ranking_success:N'),color=alt.value('black'))
+
+    # text=test_run_3.mark_text(align='left',baseline='middle',dx=5).encode(text=alt.Text('net_profit:Q',format = ",.0f"))
+
+    overlay = pd.DataFrame({'power_ranking_success': [0]})
+    vline = alt.Chart(overlay).mark_rule(color='black', strokeWidth=1).encode(y='power_ranking_success:Q')
+    st.write('Below shows the net result for Home and Away games backed by the Power Factor')
+    st.altair_chart(line_cover + text_cover + vline,use_container_width=True)
+    st.write('Blue = Home and Red = Away')
+
+    st.write('What is the breakdown of power pick by Home / Away')
+    # scale_3=alt.Scale(domain=[9,0,],range=['blue','red'],type='linear')
+    line_cover= alt.Chart(decile_df_abs_home_1).mark_bar().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    alt.Y('count'),color=alt.Color('power_pick:N'))
+    text_cover=line_cover.mark_text(baseline='middle').encode(text=alt.Text('count:N'),color=alt.value('black'))
+    overlay = pd.DataFrame({'count': [4.5]})
+    vline = alt.Chart(overlay).mark_rule(color='black', strokeWidth=1).encode(y='count:Q')
+    st.altair_chart(line_cover + vline,use_container_width=True)
+
+
+
+    home_factor_power=decile_df_abs_home_1[decile_df_abs_home_1['power_pick']==1]
+    home_factor_power['cum_result']=home_factor_power['power_ranking_success'].cumsum()
+    st.write(home_factor_power)
 
     # st.write(graph_factor_table)
 with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional Diagnostic'):
