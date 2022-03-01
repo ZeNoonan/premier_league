@@ -10,16 +10,16 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=25
-finished_week=25
+current_week=27
+finished_week=27
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv',parse_dates=['Date'])
 
     df=df.dropna(subset=['Wk'])
