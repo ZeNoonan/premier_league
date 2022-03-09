@@ -10,16 +10,16 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=25
-finished_week=25
+current_week=27
+finished_week=27
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv',parse_dates=['Date'])
     
     df=df.dropna(subset=['Wk'])
@@ -126,6 +126,8 @@ with st.expander('df'):
 
     matrix_df['home_pts_adv'] = -0.25
     matrix_df['away_pts_adv'] = 0.25
+    # matrix_df['home_pts_adv'] = -.75
+    # matrix_df['away_pts_adv'] = .75
 
 
     test_df_1=matrix_df.loc[:,['unique_match_id','Week','Home ID','Away ID','at_home','at_away','home_spread','away_spread','home_pts_adv','away_pts_adv']].copy()
@@ -700,7 +702,7 @@ with st.expander('Analysis of Factors'):
         df_table_1=df_table_1.reset_index()
         # st.write('reset data', df_table_1)
         df_table_1['index']=df_table_1['index'].astype(str)
-        df_table_1=df_table_1.set_index('index')
+        df_table_1=df_table_1.set_index('index').sort_index(ascending=False).fillna(0)
 
 
         df_table_1.loc['Total']=df_table_1.sum()
@@ -780,6 +782,31 @@ with st.expander('Analysis of Factors'):
 
 
     # st.write(graph_factor_table)
+
+with st.expander('Deep Dive on Power Factor'):
+    power_factor_analysis = analysis_factors.copy()
+    power_factor_analysis['power_ranking_success?'] = power_factor_analysis['power_pick'] * power_factor_analysis['home_cover_result']
+    power_factor_analysis['home_power_less_away'] = power_factor_analysis['away_power']-power_factor_analysis['home_power']
+    power_factor_analysis['power_margin'] = power_factor_analysis['home_power_less_away'] - power_factor_analysis['Spread']
+    cols_to_move=['Week','Date','Home Team','Away Team','Spread','home_power_less_away','power_margin','power_ranking_success?','home_power','away_power']
+    power_factor_analysis = power_factor_analysis[ cols_to_move + [ col for col in power_factor_analysis if col not in cols_to_move ] ]
+    week_power_analysis=power_factor_analysis.groupby(['Week'])['power_ranking_success?'].sum().reset_index()
+    decile_df=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'], 10))['power_ranking_success?'].sum()
+    decile_df_abs=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'].abs(), 10))['power_ranking_success?'].sum()
+    st.write(decile_df)
+    st.write(decile_df_abs)
+    
+    st.write(week_power_analysis)
+    st.write(power_factor_analysis)
+
+    decile_df_abs_spread=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['Spread'].abs(), q=10,duplicates='drop'))['power_ranking_success?'].sum()
+    st.write(decile_df_abs_spread)
+
+    decile_df_abs_home=power_factor_analysis.groupby(['power_pick'])['power_ranking_success?'].sum()
+    st.write('breaks out Home Away')
+    st.write(decile_df_abs_home)
+
+
 with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional Diagnostic'):
     df_factor = betting_matches.copy()
     two_factor_df = df_factor[df_factor['total_factor'].abs()==2]

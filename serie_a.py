@@ -7,8 +7,8 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=27
-finished_week=27
+current_week=28
+finished_week=28
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
