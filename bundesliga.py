@@ -7,16 +7,16 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=24
-finished_week=24
+current_week=25
+finished_week=25
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
     
     
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
@@ -342,14 +342,15 @@ with st.expander('Turnover Graph'):
     updated_df = turnover_data_prep_2(turnover_matches, updated_df)
 
     df_stdc_1=pd.merge(turnover_matches,team_names_id,on='ID').rename(columns={'Away Team':'Team'})
-    # st.write('issue with Team?',df_stdc_1)
+    st.write('issue with Team?',df_stdc_1)
     df_stdc_1['average']=df_stdc_1.groupby('Team')['turnover_sign'].transform(np.mean)
 
     color_scale = alt.Scale(domain=[1,0,-1],range=["red", "lightgrey","LimeGreen"])
 
     chart_cover= alt.Chart(df_stdc_1).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
     # alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('turnover_sign:Q',scale=alt.Scale(scheme='redyellowgreen')))
-    alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('turnover_sign:Q',scale=color_scale))
+    alt.Y('Team'),color=alt.Color('turnover_sign:Q',scale=color_scale))
+    # alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('turnover_sign:Q',scale=color_scale))
     # https://altair-viz.github.io/gallery/layered_heatmap_text.html
     # https://vega.github.io/vega/docs/schemes/
     
