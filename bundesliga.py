@@ -13,6 +13,8 @@ finished_week=25
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
+home_point_advantage=0.25
+
 
 with st.expander('df'):
     dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
@@ -130,12 +132,14 @@ with st.expander('df'):
 
     # st.write('matrix df',matrix_df)
     test_df = matrix_df.copy()
+    st.write('BASE LEVEL')
+    st.write( test_df[(test_df['Home Team']=='RB Leipzig') | (test_df['Away Team']=='RB Leipzig')].sort_values(by=['Week','Date']) )
     # st.write('check for unique match id', test_df)
     matrix_df['at_home'] = 1
     matrix_df['at_away'] = -1
 
-    matrix_df['home_pts_adv'] = -0.25
-    matrix_df['away_pts_adv'] = 0.25
+    matrix_df['home_pts_adv'] = home_point_advantage
+    matrix_df['away_pts_adv'] = -home_point_advantage
     # matrix_df['home_pts_adv'] = 0
     # matrix_df['away_pts_adv'] = 0
 
@@ -203,6 +207,7 @@ for name, group in grouped:
     update=test_4(df_seq_1)
     ranking_power.append(update)
 df_power = pd.concat(ranking_power, ignore_index=True)
+st.write('power ranking',df_power.sort_values(by=['ID','Week'],ascending=[True,True]))
 
 inverse_matrix=[]
 power_ranking=[]
