@@ -118,15 +118,15 @@ with st.expander('df'):
 
     matrix_df=odds_data.reset_index().rename(columns={'index':'unique_match_id'})
     workings_1=matrix_df.copy()
-
+    AgGrid( matrix_df[(matrix_df['Home ID']==5) | (matrix_df['Away ID']==5)].sort_values(by=['Week']) )
     # st.write('matrix df',matrix_df)
     test_df = matrix_df.copy()
     # st.write('check for unique match id', test_df)
     matrix_df['at_home'] = 1
     matrix_df['at_away'] = -1
 
-    matrix_df['home_pts_adv'] = -0.25
-    matrix_df['away_pts_adv'] = 0.25
+    matrix_df['home_pts_adv'] = 0.25
+    matrix_df['away_pts_adv'] = -0.25
     # matrix_df['home_pts_adv'] = 0
     # matrix_df['away_pts_adv'] = 0
 
@@ -138,7 +138,8 @@ with st.expander('df'):
     test_df_2=pd.concat([test_df_home,test_df_away],ignore_index=True)
     test_df_2=test_df_2.sort_values(by=['ID','Week'],ascending=True)
     test_df_2['spread_with_home_adv']=test_df_2['spread']+test_df_2['home_pts_adv']
-    # st.write(test_df_2)
+    st.write(test_df_2)
+    AgGrid( test_df_2[(test_df_2['ID']==5) | (test_df_2['ID']==5)].sort_values(by=['Week']) )
 
     first_qtr=matrix_df.copy()
     start=-3
@@ -734,7 +735,7 @@ with st.expander('Analysis of Factors'):
     total_factor_table_presentation = total_factor_table.style.format("{:.1f}", na_rep='-')
     # st.write('all ok in here?????',total_factor_table_presentation)
     total_factor_table_presentation = total_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     
     st.write(total_factor_table_presentation)
@@ -752,7 +753,7 @@ with st.expander('Analysis of Factors'):
 
 
     # st.write('graph work below')
-    graph_factor_table = total_factor_table.copy().loc[['-1.0','-0.0','1.0'],:].reset_index().rename(columns={'index':'result_all'})
+    graph_factor_table = total_factor_table.copy().loc[['-1.0','0.0','1.0'],:].reset_index().rename(columns={'index':'result_all'})
     graph_factor_table['result_all']=graph_factor_table['result_all'].replace({'-0.0':'tie','1.0':'win','-1.0':'lose'})
     graph_factor_table=graph_factor_table.melt(id_vars='result_all',var_name='total_factor',value_name='winning')
     chart_power= alt.Chart(graph_factor_table).mark_bar().encode(alt.X('total_factor:O',axis=alt.Axis(title='factor',labelAngle=0)),
