@@ -13,11 +13,14 @@ finished_week=28
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
+home_point_advantage=.2
+home_adv_parameter = .3
+
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv',parse_dates=['Date'])
     
     df=df.dropna(subset=['Wk'])
@@ -125,8 +128,8 @@ with st.expander('df'):
     matrix_df['at_home'] = 1
     matrix_df['at_away'] = -1
 
-    matrix_df['home_pts_adv'] = 0.25
-    matrix_df['away_pts_adv'] = -0.25
+    matrix_df['home_pts_adv'] = home_point_advantage
+    matrix_df['away_pts_adv'] = -home_point_advantage
     # matrix_df['home_pts_adv'] = 0
     # matrix_df['away_pts_adv'] = 0
 
@@ -227,6 +230,7 @@ home_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].
 away_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].copy().rename(columns={'week':'Week','ID':'Away ID'})
 updated_df=pd.merge(matches_df,home_power_rank_merge,on=['Home ID','Week']).rename(columns={'final_power':'home_power'})
 updated_df=pd.merge(updated_df,away_power_rank_merge,on=['Away ID','Week']).rename(columns={'final_power':'away_power'})
+updated_df['home_power']=updated_df['home_power']+home_adv_parameter
 updated_df['calculated_spread']=updated_df['away_power']-updated_df['home_power']
 updated_df['spread_working']=updated_df['home_power']-updated_df['away_power']+updated_df['Spread']
 updated_df['power_pick'] = np.where(updated_df['spread_working'] > 0, 1,
@@ -666,8 +670,9 @@ with placeholder_1.expander('Weekly Results'):
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
     df9 = df9.format(formatter="{:.0%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
+            # .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :])
     st.write(df9)
 
     st.write('Total betting result per Betting Table',betting_matches['result'].sum())
@@ -746,15 +751,17 @@ with st.expander('Analysis of Factors'):
     bets_made_factor_table=bets_made_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?']]
     st.write('This is the matches BET ON broken down by Factor result')
     bets_made_factor_table_presentation = bets_made_factor_table.style.format("{:.1f}", na_rep='-')
-    bets_made_factor_table_presentation = bets_made_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+    bets_made_factor_table_presentation = bets_made_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]) \
+    .format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
+            # .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :])
     st.write(bets_made_factor_table_presentation)
 
 
     # st.write('graph work below')
     graph_factor_table = total_factor_table.copy().loc[['-1.0','0.0','1.0'],:].reset_index().rename(columns={'index':'result_all'})
-    graph_factor_table['result_all']=graph_factor_table['result_all'].replace({'-0.0':'tie','1.0':'win','-1.0':'lose'})
+    graph_factor_table['result_all']=graph_factor_table['result_all'].replace({'0.0':'tie','1.0':'win','-1.0':'lose'})
     graph_factor_table=graph_factor_table.melt(id_vars='result_all',var_name='total_factor',value_name='winning')
     chart_power= alt.Chart(graph_factor_table).mark_bar().encode(alt.X('total_factor:O',axis=alt.Axis(title='factor',labelAngle=0)),
     alt.Y('winning'),color=alt.Color('result_all',scale=color_scale))
@@ -793,48 +800,45 @@ with st.expander('Deep Dive on Power Factor'):
     cols_to_move=['Week','Date','Home Team','Away Team','Spread','home_power_less_away','power_margin','power_ranking_success?','home_power','away_power']
     power_factor_analysis = power_factor_analysis[ cols_to_move + [ col for col in power_factor_analysis if col not in cols_to_move ] ]
     week_power_analysis=power_factor_analysis.groupby(['Week'])['power_ranking_success?'].sum().reset_index()
-    decile_df=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'], 10))['power_ranking_success?'].sum()
-    decile_df_abs=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'].abs(), 10))['power_ranking_success?'].sum()
-    st.write(decile_df)
-    st.write(decile_df_abs)
+    week_power_analysis['cum_sum']=week_power_analysis['power_ranking_success?'].cumsum()
     
-    st.write(week_power_analysis)
+    # st.write(week_power_analysis)
 
-    decile_df_abs_spread=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['Spread'].abs(), q=10,duplicates='drop'))['power_ranking_success?'].sum()
-    st.write('breaks out Spread')
-    st.write(decile_df_abs_spread)
 
-    decile_df_abs_home=power_factor_analysis.groupby(['power_pick'])['power_ranking_success?'].sum()
+    decile_df_abs_home=power_factor_analysis.groupby(['power_pick'])['power_ranking_success?'].sum().reset_index()
     st.write('breaks out Home Away')
-    st.write(decile_df_abs_home)
-
+    # st.write(decile_df_abs_home)
+    st.altair_chart(alt.Chart(decile_df_abs_home).mark_bar().encode(x='power_pick:N',y='power_ranking_success?'),use_container_width=True)
 
     decile_df_abs_home_1=power_factor_analysis.groupby(['Week','power_pick'])['power_ranking_success?'].sum().reset_index()
     decile_df_abs_home_1=power_factor_analysis.groupby(['Week','power_pick']).agg(
         power_ranking_success=('power_ranking_success?','sum'),count=('power_pick','count')).reset_index()
     # st.write('testing', test_replicate)
     decile_df_abs_home_1['test_sum']=decile_df_abs_home_1.groupby(['Week'])['power_ranking_success'].transform('sum')
-    st.write('breaks out Home Away by week')
-    st.write(decile_df_abs_home_1)
+    decile_df_abs_home_1['cum_sum_home_away']=decile_df_abs_home_1.groupby(['power_pick'])['power_ranking_success'].cumsum()
+    # st.write('breaks out Home Away by week')
+    # st.write(decile_df_abs_home_1)
     # st.write( power_factor_analysis[(power_factor_analysis['Home Team'].str.contains('Hoffen') | power_factor_analysis['Away Team'].str.contains('Hoffen'))] )
     # st.write(power_factor_analysis)
 
+
     scale_3=alt.Scale(domain=['1','-1'],range=['blue','red'])
-    line_cover= alt.Chart(decile_df_abs_home_1).mark_line().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
-    
-    alt.Y('power_ranking_success'),color=alt.Color('power_pick:Q',scale=scale_3))
-    text_cover=line_cover.mark_text(baseline='middle',dx=20,dy=-5).encode(text=alt.Text('power_ranking_success:N'),color=alt.value('black'))
+    def graph(decile_df_abs_home_1,column):
+        line_cover= alt.Chart(decile_df_abs_home_1).mark_line().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+        alt.Y(column),color=alt.Color('power_pick:Q',scale=scale_3))
+        text_cover=line_cover.mark_text(baseline='middle',dx=20,dy=-5).encode(text=alt.Text(column),color=alt.value('black'))
+        overlay = pd.DataFrame({column: [0]})
+        vline = alt.Chart(overlay).mark_rule(color='black', strokeWidth=1).encode(y=column)
+        return st.altair_chart(line_cover + text_cover + vline,use_container_width=True)
 
-    # text=test_run_3.mark_text(align='left',baseline='middle',dx=5).encode(text=alt.Text('net_profit:Q',format = ",.0f"))
 
-    overlay = pd.DataFrame({'power_ranking_success': [0]})
-    vline = alt.Chart(overlay).mark_rule(color='black', strokeWidth=1).encode(y='power_ranking_success:Q')
-    st.write('Below shows the net result for Home and Away games backed by the Power Factor')
-    st.altair_chart(line_cover + text_cover + vline,use_container_width=True)
+    st.write('Below shows the weekly net result for Home and Away games backed by the Power Factor')
+    graph(decile_df_abs_home_1,column='power_ranking_success')
     st.write('Blue = Home and Red = Away')
-
+    st.write('Below shows the cumulative win/loss by home away games')
+    graph(decile_df_abs_home_1,column='cum_sum_home_away')
     st.write('What is the breakdown of power pick by Home / Away')
-    # scale_3=alt.Scale(domain=[9,0,],range=['blue','red'],type='linear')
+    
     line_cover= alt.Chart(decile_df_abs_home_1).mark_bar().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
     alt.Y('count'),color=alt.Color('power_pick:N'))
     text_cover=line_cover.mark_text(baseline='middle').encode(text=alt.Text('count:N'),color=alt.value('black'))
@@ -844,11 +848,28 @@ with st.expander('Deep Dive on Power Factor'):
 
 
 
-    home_factor_power=decile_df_abs_home_1[decile_df_abs_home_1['power_pick']==1]
-    home_factor_power['cum_result']=home_factor_power['power_ranking_success'].cumsum()
-    st.write(home_factor_power)
+    decile_df_abs_spread=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['Spread'].abs(), q=10,duplicates='drop'))['power_ranking_success?'].sum().reset_index()
+    # st.write('breaks out Spread')
+    # st.write(decile_df_abs_spread)
+    line_cover= alt.Chart(decile_df_abs_spread).mark_bar().encode(alt.X('Spread',axis=alt.Axis(title='Spread',labelAngle=0)),
+    alt.Y('power_ranking_success?:Q'))
+    text_cover=line_cover.mark_text(baseline='middle').encode(text=alt.Text('power_ranking_success?'),color=alt.value('black'))
+    overlay = pd.DataFrame({'power_ranking_success?': [0]})
+    vline = alt.Chart(overlay).mark_rule(color='red', strokeWidth=1).encode(y='power_ranking_success?:Q')
+    st.write('The Below Chart splits the Spread into even buckets and looks at the win/loss record for each bucket')    
+    st.altair_chart(line_cover + vline,use_container_width=True)
 
-    # st.write(graph_factor_table)
+    st.write('Below is breaking into even buckets the difference between the Model and the Spread to see if there is any insight')
+    decile_df=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'], 8))['power_ranking_success?'].sum()
+    decile_df_abs=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'].abs(), 8))['power_ranking_success?'].sum().reset_index()
+    # st.write(decile_df)
+    # st.write(decile_df_abs)
+    line_cover= alt.Chart(decile_df_abs).mark_bar().encode(alt.X('power_margin',axis=alt.Axis(title='power_margin',labelAngle=0)),
+    alt.Y('power_ranking_success?:Q'))
+    text_cover=line_cover.mark_text(baseline='middle').encode(text=alt.Text('power_ranking_success?'),color=alt.value('black'))
+    overlay = pd.DataFrame({'power_ranking_success?': [0]})
+    vline = alt.Chart(overlay).mark_rule(color='red', strokeWidth=1).encode(y='power_ranking_success?:Q')
+    st.altair_chart(line_cover + vline,use_container_width=True)
 
 
 

@@ -13,12 +13,13 @@ finished_week=25
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
-home_point_advantage=0.25
+home_point_advantage=.2
+home_adv_parameter = .3
 
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
     
     
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
@@ -132,8 +133,8 @@ with st.expander('df'):
 
     # st.write('matrix df',matrix_df)
     test_df = matrix_df.copy()
-    st.write('BASE LEVEL')
-    st.write( test_df[(test_df['Home Team']=='RB Leipzig') | (test_df['Away Team']=='RB Leipzig')].sort_values(by=['Week','Date']) )
+    # st.write('BASE LEVEL')
+    # st.write( test_df[(test_df['Home Team']=='RB Leipzig') | (test_df['Away Team']=='RB Leipzig')].sort_values(by=['Week','Date']) )
     # st.write('check for unique match id', test_df)
     matrix_df['at_home'] = 1
     matrix_df['at_away'] = -1
@@ -207,7 +208,7 @@ for name, group in grouped:
     update=test_4(df_seq_1)
     ranking_power.append(update)
 df_power = pd.concat(ranking_power, ignore_index=True)
-st.write('power ranking',df_power.sort_values(by=['ID','Week'],ascending=[True,True]))
+# st.write('power ranking',df_power.sort_values(by=['ID','Week'],ascending=[True,True]))
 
 inverse_matrix=[]
 power_ranking=[]
@@ -242,6 +243,7 @@ home_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].
 away_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].copy().rename(columns={'week':'Week','ID':'Away ID'})
 updated_df=pd.merge(matches_df,home_power_rank_merge,on=['Home ID','Week']).rename(columns={'final_power':'home_power'})
 updated_df=pd.merge(updated_df,away_power_rank_merge,on=['Away ID','Week']).rename(columns={'final_power':'away_power'})
+updated_df['home_power']=updated_df['home_power']+home_adv_parameter
 updated_df['calculated_spread']=updated_df['away_power']-updated_df['home_power']
 updated_df['spread_working']=updated_df['home_power']-updated_df['away_power']+updated_df['Spread']
 updated_df['power_pick'] = np.where(updated_df['spread_working'] > 0, 1,

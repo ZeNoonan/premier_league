@@ -13,13 +13,18 @@ st.set_page_config(layout="wide")
 current_week=27
 finished_week=27
 
+home_point_advantage=0.2
+home_adv_parameter = .3
+
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
 
+
+
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv',parse_dates=['Date'])
 
     df=df.dropna(subset=['Wk'])
@@ -122,8 +127,8 @@ with st.expander('df'):
     matrix_df['at_home'] = 1
     matrix_df['at_away'] = -1
 
-    matrix_df['home_pts_adv'] = -0.25
-    matrix_df['away_pts_adv'] = 0.25
+    matrix_df['home_pts_adv'] = home_point_advantage
+    matrix_df['away_pts_adv'] = -home_point_advantage
 
 
     test_df_1=matrix_df.loc[:,['unique_match_id','Week','Home ID','Away ID','at_home','at_away','home_spread','away_spread','home_pts_adv','away_pts_adv']].copy()
@@ -220,6 +225,7 @@ home_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].
 away_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].copy().rename(columns={'week':'Week','ID':'Away ID'})
 updated_df=pd.merge(matches_df,home_power_rank_merge,on=['Home ID','Week']).rename(columns={'final_power':'home_power'})
 updated_df=pd.merge(updated_df,away_power_rank_merge,on=['Away ID','Week']).rename(columns={'final_power':'away_power'})
+updated_df['home_power']=updated_df['home_power']+home_adv_parameter
 updated_df['calculated_spread']=updated_df['away_power']-updated_df['home_power']
 updated_df['spread_working']=updated_df['home_power']-updated_df['away_power']+updated_df['Spread']
 updated_df['power_pick'] = np.where(updated_df['spread_working'] > 0, 1,
@@ -778,6 +784,86 @@ with st.expander('Analysis of Factors'):
 
 
     # st.write(graph_factor_table)
+
+with st.expander('Deep Dive on Power Factor'):
+    power_factor_analysis = analysis_factors.copy()
+    power_factor_analysis['power_ranking_success?'] = power_factor_analysis['power_pick'] * power_factor_analysis['home_cover_result']
+    power_factor_analysis['home_power_less_away'] = power_factor_analysis['away_power']-power_factor_analysis['home_power']
+    power_factor_analysis['power_margin'] = power_factor_analysis['home_power_less_away'] - power_factor_analysis['Spread']
+    cols_to_move=['Week','Date','Home Team','Away Team','Spread','home_power_less_away','power_margin','power_ranking_success?','home_power','away_power']
+    power_factor_analysis = power_factor_analysis[ cols_to_move + [ col for col in power_factor_analysis if col not in cols_to_move ] ]
+    week_power_analysis=power_factor_analysis.groupby(['Week'])['power_ranking_success?'].sum().reset_index()
+    week_power_analysis['cum_sum']=week_power_analysis['power_ranking_success?'].cumsum()
+    
+    # st.write(week_power_analysis)
+
+
+    decile_df_abs_home=power_factor_analysis.groupby(['power_pick'])['power_ranking_success?'].sum().reset_index()
+    st.write('breaks out Home Away')
+    # st.write(decile_df_abs_home)
+    st.altair_chart(alt.Chart(decile_df_abs_home).mark_bar().encode(x='power_pick:N',y='power_ranking_success?'),use_container_width=True)
+
+    decile_df_abs_home_1=power_factor_analysis.groupby(['Week','power_pick'])['power_ranking_success?'].sum().reset_index()
+    decile_df_abs_home_1=power_factor_analysis.groupby(['Week','power_pick']).agg(
+        power_ranking_success=('power_ranking_success?','sum'),count=('power_pick','count')).reset_index()
+    # st.write('testing', test_replicate)
+    decile_df_abs_home_1['test_sum']=decile_df_abs_home_1.groupby(['Week'])['power_ranking_success'].transform('sum')
+    decile_df_abs_home_1['cum_sum_home_away']=decile_df_abs_home_1.groupby(['power_pick'])['power_ranking_success'].cumsum()
+    # st.write('breaks out Home Away by week')
+    # st.write(decile_df_abs_home_1)
+    # st.write( power_factor_analysis[(power_factor_analysis['Home Team'].str.contains('Hoffen') | power_factor_analysis['Away Team'].str.contains('Hoffen'))] )
+    # st.write(power_factor_analysis)
+
+
+    scale_3=alt.Scale(domain=['1','-1'],range=['blue','red'])
+    def graph(decile_df_abs_home_1,column):
+        line_cover= alt.Chart(decile_df_abs_home_1).mark_line().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+        alt.Y(column),color=alt.Color('power_pick:Q',scale=scale_3))
+        text_cover=line_cover.mark_text(baseline='middle',dx=20,dy=-5).encode(text=alt.Text(column),color=alt.value('black'))
+        overlay = pd.DataFrame({column: [0]})
+        vline = alt.Chart(overlay).mark_rule(color='black', strokeWidth=1).encode(y=column)
+        return st.altair_chart(line_cover + text_cover + vline,use_container_width=True)
+
+
+    st.write('Below shows the weekly net result for Home and Away games backed by the Power Factor')
+    graph(decile_df_abs_home_1,column='power_ranking_success')
+    st.write('Blue = Home and Red = Away')
+    st.write('Below shows the cumulative win/loss by home away games')
+    graph(decile_df_abs_home_1,column='cum_sum_home_away')
+    st.write('What is the breakdown of power pick by Home / Away')
+    
+    line_cover= alt.Chart(decile_df_abs_home_1).mark_bar().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+    alt.Y('count'),color=alt.Color('power_pick:N'))
+    text_cover=line_cover.mark_text(baseline='middle').encode(text=alt.Text('count:N'),color=alt.value('black'))
+    overlay = pd.DataFrame({'count': [4.5]})
+    vline = alt.Chart(overlay).mark_rule(color='black', strokeWidth=1).encode(y='count:Q')
+    st.altair_chart(line_cover + vline,use_container_width=True)
+
+
+
+    decile_df_abs_spread=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['Spread'].abs(), q=10,duplicates='drop'))['power_ranking_success?'].sum().reset_index()
+    # st.write('breaks out Spread')
+    # st.write(decile_df_abs_spread)
+    line_cover= alt.Chart(decile_df_abs_spread).mark_bar().encode(alt.X('Spread',axis=alt.Axis(title='Spread',labelAngle=0)),
+    alt.Y('power_ranking_success?:Q'))
+    text_cover=line_cover.mark_text(baseline='middle').encode(text=alt.Text('power_ranking_success?'),color=alt.value('black'))
+    overlay = pd.DataFrame({'power_ranking_success?': [0]})
+    vline = alt.Chart(overlay).mark_rule(color='red', strokeWidth=1).encode(y='power_ranking_success?:Q')
+    st.write('The Below Chart splits the Spread into even buckets and looks at the win/loss record for each bucket')    
+    st.altair_chart(line_cover + vline,use_container_width=True)
+
+    st.write('Below is breaking into even buckets the difference between the Model and the Spread to see if there is any insight')
+    decile_df=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'], 8))['power_ranking_success?'].sum()
+    decile_df_abs=power_factor_analysis.groupby(pd.qcut(power_factor_analysis['power_margin'].abs(), 8))['power_ranking_success?'].sum().reset_index()
+    # st.write(decile_df)
+    # st.write(decile_df_abs)
+    line_cover= alt.Chart(decile_df_abs).mark_bar().encode(alt.X('power_margin',axis=alt.Axis(title='power_margin',labelAngle=0)),
+    alt.Y('power_ranking_success?:Q'))
+    text_cover=line_cover.mark_text(baseline='middle').encode(text=alt.Text('power_ranking_success?'),color=alt.value('black'))
+    overlay = pd.DataFrame({'power_ranking_success?': [0]})
+    vline = alt.Chart(overlay).mark_rule(color='red', strokeWidth=1).encode(y='power_ranking_success?:Q')
+    st.altair_chart(line_cover + vline,use_container_width=True)
+
 with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional Diagnostic'):
     df_factor = betting_matches.copy()
     two_factor_df = df_factor[df_factor['total_factor'].abs()==2]
