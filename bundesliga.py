@@ -7,8 +7,8 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=25
-finished_week=25
+current_week=26
+finished_week=26
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
@@ -16,6 +16,7 @@ placeholder_2=st.empty()
 home_point_advantage=.2
 home_adv_parameter = .3
 
+# all matches backed
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')

@@ -10,8 +10,8 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=27
-finished_week=27
+current_week=28
+finished_week=28
 
 home_point_advantage=.2
 home_adv_parameter = .3
@@ -19,10 +19,11 @@ home_adv_parameter = .3
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
+# all backed
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv',parse_dates=['Date'])
     
     df=df.dropna(subset=['Wk'])
@@ -224,7 +225,7 @@ power_ranking_combined = pd.concat(power_ranking).reset_index().rename(columns={
 
 matches_df = matrix_df.copy()
 home_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].copy().rename(columns={'week':'Week','ID':'Home ID'})
-st.write('home power', home_power_rank_merge)
+# st.write('home power', home_power_rank_merge)
 # home_power_rank_merge['final_power']=home_power_rank_merge['final_power']+home_adv_parameter
 away_power_rank_merge=power_ranking_combined.loc[:,['ID','week','final_power']].copy().rename(columns={'week':'Week','ID':'Away ID'})
 updated_df=pd.merge(matches_df,home_power_rank_merge,on=['Home ID','Week']).rename(columns={'final_power':'home_power'})

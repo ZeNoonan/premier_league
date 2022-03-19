@@ -7,8 +7,8 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=28
-finished_week=28
+current_week=29
+finished_week=29
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
@@ -16,11 +16,12 @@ placeholder_2=st.empty()
 home_point_advantage=.2
 home_adv_parameter = .3
 
+# all matches backed
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
+    dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv',parse_dates=['Date'])
     
     df=df.dropna(subset=['Wk'])
@@ -181,6 +182,7 @@ def test_4(matrix_df_1):
 
 # with st.beta_expander('CORRECT Power Ranking to be used in Matrix Multiplication'):
 # # https://stackoverflow.com/questions/9621362/how-do-i-compute-a-weighted-moving-average-using-pandas
+# sourcery skip: remove-zero-from-range
 grouped = test_df_2.groupby('ID')
 # https://stackoverflow.com/questions/16974047/efficient-way-to-find-missing-elements-in-an-integer-sequence
 # https://stackoverflow.com/questions/62471485/is-it-possible-to-insert-missing-sequence-numbers-in-python
