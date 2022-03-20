@@ -19,10 +19,8 @@ home_adv_parameter = .3
 # all matches backed
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
-    
-    
+    dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
     
     @st.cache
@@ -655,49 +653,41 @@ with placeholder_1.expander('Weekly Results'):
     weekly_results=analysis.groupby(['Week','result']).agg(winning=('result','sum'),count=('result','count'))
     weekly_test=analysis[analysis['total_factor'].abs()>2].loc[:,['Week','result']].copy()
     df9 = weekly_test.groupby(['result','Week']).size().unstack(fill_value=0)
-    # df9 = weekly_test.groupby(['result','Week']).sum().unstack(fill_value=0)
-    # df9 = weekly_test.groupby(['Week','total_factor'])['result'].sum()
     df9=df9.reset_index()
-
-    # st.write(df9)
-    # df9['result']=df9['result'].astype(int).astype(str)
     df9['result']=df9['result'].round(1).astype(str)
-    # st.write(df9)
-
     df9=df9.set_index('result').sort_index(ascending=False)
-    # df9.columns = df9.columns.astype(str)
-    # df_slice=df9.loc[:,13:]
-    # df9['subtotal_week_13_on']=df_slice.sum(axis=1)
-    # df_all=df9.iloc[:,:-1]
-    # df9['grand_total']=df_all.sum(axis=1)
     df9['grand_total']=df9.sum(axis=1)
-    # st.write()
     df9.loc['Winning_Bets']=(df9.loc['1.0']+(df9.loc['0.5']/2))
     df9.loc['Losing_Bets']=(df9.loc['-1.0']+(df9.loc['-0.5']/2))
-    
-
-    # df9.loc['No. of Bets Made'] = df9.loc[['1.0','0.5','0.0','-0.5','-1.0']].sum()
     df9.loc['No. of Bets Made'] = df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']
     df9.loc['PL_Bets']=df9.loc['Winning_Bets'] - df9.loc['Losing_Bets']
     df9=df9.apply(pd.to_numeric, downcast='float')
-    
+    graph_pl_data=df9.loc[['PL_Bets'],:].drop('grand_total',axis=1)
+    graph_pl_data=graph_pl_data.stack().reset_index().drop('result',axis=1).rename(columns={0:'week_result'})
+    graph_pl_data['Week']=graph_pl_data['Week'].astype(int)
+    graph_pl_data['total_result']=graph_pl_data['week_result'].cumsum()
+    graph_pl_data=graph_pl_data.melt(id_vars='Week',var_name='category',value_name='result')
     df9.loc['% Winning'] = ((df9.loc['1.0']+(df9.loc['0.5']/2)) / (df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']) ).replace({'<NA>':np.NaN})
-    # df9.loc['% Winning'] = ((df9.loc['1.0'] / df9.loc['No. of Bets Made'])).replace({'<NA>':np.NaN})
     table_test=df9.copy()
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
     df9 = df9.format(formatter="{:.0%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
-    st.write(df9)
+    
+    def graph_pl(decile_df_abs_home_1,column):
+        line_cover= alt.Chart(decile_df_abs_home_1).mark_line().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+        alt.Y(column),color=alt.Color('category'))
+        text_cover=line_cover.mark_text(baseline='middle',dx=0,dy=-15).encode(text=alt.Text(column),color=alt.value('black'))
+        overlay = pd.DataFrame({column: [0]})
+        vline = alt.Chart(overlay).mark_rule(color='black', strokeWidth=1).encode(y=column)
+        return st.altair_chart(line_cover + text_cover + vline,use_container_width=True)
+
+    graph_pl(graph_pl_data,column='result')
 
     st.write('Total betting result per Betting Table',betting_matches['result'].sum())
     st.write('Total betting result per Above Table',table_test.loc['PL_Bets','grand_total'])
-
-    # st.write(betting_matches.groupby(['Week'])['result'].sum())
-    # st.write(betting_matches.groupby(['Week'])['result'].sum().sum())
-    # st.write(table_test.loc['PL_Bets',:25])
-    # st.write(table_test.loc['PL_Bets',:25].sum())
+    st.write(df9)
 
 with st.expander('Analysis of Factors'):
     analysis_factors = betting_matches.copy()
