@@ -45,6 +45,7 @@ with st.expander('df'):
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_dummy.xlsx',parse_dates=['Date'])
 
     def concat_current_prior(x,y):
+        # sourcery skip: inline-immediately-returned-variable
         current_plus_prior = pd.concat([x,y],axis=0,ignore_index=True)
         return current_plus_prior
 
@@ -179,6 +180,7 @@ def test_4(matrix_df_1):
 
 # with st.beta_expander('CORRECT Power Ranking to be used in Matrix Multiplication'):
 # # https://stackoverflow.com/questions/9621362/how-do-i-compute-a-weighted-moving-average-using-pandas
+# sourcery skip: remove-zero-from-range
 grouped = test_df_2.groupby('ID')
 # https://stackoverflow.com/questions/16974047/efficient-way-to-find-missing-elements-in-an-integer-sequence
 # https://stackoverflow.com/questions/62471485/is-it-possible-to-insert-missing-sequence-numbers-in-python
@@ -679,6 +681,7 @@ with st.expander('Analysis of Factors'):
     analysis_factors = betting_matches.copy()
     analysis_factors=analysis_factors[analysis_factors['Week']<finished_week+1]
     def analysis_factor_function(analysis_factors):
+        # sourcery skip: remove-unnecessary-else, swap-if-else-branches
         analysis_factors['home_turnover_success?'] = analysis_factors['home_turnover_sign'] * analysis_factors['home_cover_result']
         analysis_factors['away_turnover_success?'] = analysis_factors['away_turnover_sign'] * analysis_factors['home_cover_result']
         analysis_factors['home_cover_season_success?'] = analysis_factors['home_cover_sign'] * analysis_factors['home_cover_result']  
