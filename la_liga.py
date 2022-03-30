@@ -10,9 +10,9 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=28
-finished_week=28
-
+current_week=29
+finished_week=29
+# backed levante and mallorca all backed
 home_point_advantage=.2
 home_adv_parameter = .3
 
@@ -660,7 +660,7 @@ with placeholder_1.expander('Weekly Results'):
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
     df9 = df9.format(formatter="{:.0%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     
     def graph_pl(decile_df_abs_home_1,column):

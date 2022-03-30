@@ -7,8 +7,11 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=26
-finished_week=26
+
+# all backed leipzig, greuther furth and wolfsburg
+
+current_week=28
+finished_week=28
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
@@ -53,6 +56,7 @@ with st.expander('df'):
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_dummy.xlsx',parse_dates=['Date'])
 
     def concat_current_prior(x,y):
+        # sourcery skip: inline-immediately-returned-variable
         current_plus_prior = pd.concat([x,y],axis=0,ignore_index=True)
         return current_plus_prior
 
@@ -672,7 +676,7 @@ with placeholder_1.expander('Weekly Results'):
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
     df9 = df9.format(formatter="{:.0%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     
     def graph_pl(decile_df_abs_home_1,column):
@@ -951,7 +955,7 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
 
     df_factor_table_1_presentation = df_factor_table_1.style.format("{:.1f}", na_rep='-')
     df_factor_table_1_presentation = df_factor_table_1_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
 
 

@@ -9,7 +9,7 @@ import seaborn as sns
 st.set_page_config(layout="wide")
 current_week=29
 finished_week=29
-
+# all backed empoli backed
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
@@ -43,6 +43,7 @@ with st.expander('df'):
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_dummy.xlsx',parse_dates=['Date'])
 
     def concat_current_prior(x,y):
+        # sourcery skip: inline-immediately-returned-variable
         current_plus_prior = pd.concat([x,y],axis=0,ignore_index=True)
         return current_plus_prior
 

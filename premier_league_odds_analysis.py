@@ -10,6 +10,9 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
+
+# backed watford, only bet
+
 current_week=29
 finished_week=29
 
@@ -25,8 +28,8 @@ github_prior_year_odds='https://raw.githubusercontent.com/ZeNoonan/premier_leagu
 github_team_id='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_team_names_id.csv'
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv',parse_dates=['Date'])
     df=pd.read_csv(github_fbref_scores,parse_dates=['Date'])
 
