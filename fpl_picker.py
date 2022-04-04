@@ -11,8 +11,8 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-future_gameweek=26
-current_week=25
+future_gameweek=31
+current_week=30
 current_year=2022
 
 with st.expander('Data Prep'):
@@ -82,7 +82,7 @@ with st.expander('Data Prep'):
     df_week_data_raw_2020 = read_data(file_location_2020,col_selection_week_2020)
     df_week_data_raw_2019 = read_data(file_location_2019,col_selection_week_2020)
     df_week_data_raw_2018 = read_data(file_location_2018,col_selection_week_2020)
-    # st.write(df_week_data_raw_2022.head())
+    # st.write(df_week_data_raw_2022[df_week_data_raw_2022['player_id']==359])
 
     @st.cache
     def prep_base_data(url_csv, pick):
@@ -184,11 +184,12 @@ with st.expander('Data Prep'):
     # 'games_total','last_38_games','last_38_points','bps','bonus','player_id','ict_index',
     # 'opponent_team','selected','transfers_in','transfers_out']
 
-    cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
+    cols_to_move=['full_name','Position','Game_1','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
     'selected']
 
     cols = cols_to_move + [col for col in full_df if col not in cols_to_move]
-    # st.write('check', full_df[cols])
+    full_df=full_df[full_df['Game_1']>0]
+    st.write('check', full_df[cols])
     full_df=full_df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
     full_df=(full_df[cols]).sort_values(by=['full_name', 'year', 'week','games_2022_rolling'], ascending=[True, False, False,False])
     # st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
@@ -209,7 +210,7 @@ with st.expander('Player Detail by Week'):
 with st.expander('Player Stats Latest'):
 
     # @st.cache(suppress_st_warning=True)
-    def find_latest_player_stats(x):
+    def find_latest_player_stats(x):  # sourcery skip: remove-unnecessary-cast
         week_no = st.number_input ("Week number?", min_value=int(1),value=int(current_week))
         x=x[x['week'] == week_no]
         x = x.sort_values(by=['year', 'week'], ascending=[False, False]).drop_duplicates('full_name')
@@ -240,7 +241,7 @@ with st.expander('Player Stats Latest'):
 
     weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
     def merge_latest_transfers(x):
-        return pd.merge(x,weekly_transfers_in,on=['full_name'],how='left')
+        return pd.merge(x,weekly_transfers_in,on=['full_name'],how='right')
 
     def weekly_transfers_historical(x):
         x['transfers_balance']=x['transfers_in']-x['transfers_out']
@@ -392,7 +393,7 @@ with st.expander('To run the GW analysis'):
 
             weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
             def merge_latest_transfers(x):
-                return pd.merge(x,weekly_transfers_in,on=['full_name'],how='left')
+                return pd.merge(x,weekly_transfers_in,on=['full_name'],how='right')
 
             def weekly_transfers_historical(x):
                 x['transfers_balance']=x['transfers_in']-x['transfers_out']
@@ -458,7 +459,7 @@ with st.expander('Analyse GW data Player Level'):
     # st.write(data)
     
 with st.expander('Graph GW data'):
-    data=data[data['games_2022_rolling']>0]
+    data=data[data['games_2022_rolling']>1]
     # st.write(data[data['full_name'].str.contains('bowen')])
     data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
@@ -480,7 +481,7 @@ with st.expander('Graph GW data'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('Graph FW data'):
-    data=data[data['games_2022_rolling']>0]
+    data=data[data['games_2022_rolling']>1]
     data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
@@ -499,7 +500,7 @@ with st.expander('Graph FW data'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('Graph MD data'):
-    data=data[data['games_2022_rolling']>0]
+    data=data[data['games_2022_rolling']>1]
     data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
@@ -518,7 +519,7 @@ with st.expander('Graph MD data'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('Graph DF data'):
-    data=data[data['games_2022_rolling']>0]
+    data=data[data['games_2022_rolling']>1]
     data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
@@ -537,7 +538,7 @@ with st.expander('Graph DF data'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('Graph GK data'):
-    data=data[data['games_2022_rolling']>0]
+    data=data[data['games_2022_rolling']>1]
     data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
@@ -564,7 +565,7 @@ with st.expander('GW Detail with Latest Transfers'):
 
     weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
     def merge_latest_transfers(x):
-        return pd.merge(x,weekly_transfers_in,on=['full_name'],how='left')
+        return pd.merge(x,weekly_transfers_in,on=['full_name'],how='right')
 
     
     def rank_calc(x):
@@ -582,9 +583,10 @@ with st.expander('GW Detail with Latest Transfers'):
     current_data_week=rank_calc(current_data_week)
     current_data_week=rank_total_calc(current_data_week)
     current_data_week['week']=current_week+1
-    current_data_week=current_data_week[current_data_week['games_2022_rolling']>0]
+    current_data_week=current_data_week[current_data_week['games_2022_rolling']>1]
     current_week_projections = current_data_week.drop(['Unnamed: 0'],axis=1).set_index('full_name').sort_values(by=['totals_ranked'],ascending=True) 
     st.write('Projections', current_week_projections.style.format(format_mapping))
+    st.write('Mids', current_week_projections[current_week_projections['Position']=='MD'].style.format(format_mapping))
     
 with st.expander('GW Graph with Latest Transfers'):    
     current_data_week=current_data_week.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
