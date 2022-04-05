@@ -287,7 +287,7 @@
 285,29,Sat,2022-03-19,Aston Villa,Arsenal,0.25
 286,29,Sat,2022-03-20,Leicester City,Brentford,-0.25
 287,29,Sat,2022-03-20,Tottenham,West Ham,-0.75
-288,30,Sat,2022-04-02,Liverpool,Watford,-2.5
+288,30,Sat,2022-04-02,Liverpool,Watford,-2.25
 289,30,Sat,2022-04-02,Chelsea,Brentford,-1.25
 290,30,Sat,2022-04-03,Tottenham,Newcastle Utd,-1.0
 291,30,Sat,2022-04-02,Wolves,Aston Villa,0.0
@@ -298,25 +298,25 @@
 296,30,Sat,2022-04-02,Burnley,Manchester City,1.75
 297,30,Sat,2022-04-04,Crystal Palace,Arsenal,0.5
 298,31,Sat,2022-04-06,Burnley,Everton,0.0
-299,31,Sat,2022-04-09,Southampton,Chelsea,0.75
+299,31,Sat,2022-04-09,Southampton,Chelsea,0.5
 300,31,Sat,2022-04-09,Aston Villa,Tottenham,0.25
 301,31,Sat,2022-04-09,Watford,Leeds United,0.0
-302,31,Sat,2022-04-09,Arsenal,Brighton,-1.0
-303,31,Sat,2022-04-10,Brentford,West Ham,0.25
+302,31,Sat,2022-04-09,Arsenal,Brighton,-0.75
+303,31,Sat,2022-04-10,Brentford,West Ham,0.0
 304,31,Sat,2022-04-10,Manchester City,Liverpool,-0.5
-305,32,Sat,2022-04-09,Everton,Manchester Utd,0.5
+305,32,Sat,2022-04-09,Everton,Manchester Utd,0.75
 306,32,Sat,2022-04-10,Leicester City,Crystal Palace,-0.25
 307,32,Sat,2022-04-08,Newcastle Utd,Wolves,-0.25
 308,32,Sat,2022-04-10,Norwich City,Burnley,0.0
 309,33,Sat,2022-04-16,Everton,Crystal Palace,
-310,33,Sat,2022-04-16,Southampton,Arsenal,
+310,33,Sat,2022-04-16,Southampton,Arsenal,0.25
 311,33,Sat,2022-04-16,Wolves,Manchester City,
-312,33,Sat,2022-04-16,Manchester Utd,Norwich City,
+312,33,Sat,2022-04-16,Manchester Utd,Norwich City,-1.5
 313,33,Sat,2022-04-16,Leeds United,Chelsea,
-314,33,Sat,2022-04-16,Watford,Brentford,
-315,33,Sat,2022-04-16,Newcastle Utd,Leicester City,
-316,33,Sat,2022-04-16,Tottenham,Brighton,
-317,33,Sat,2022-04-16,West Ham,Burnley,
+314,33,Sat,2022-04-16,Watford,Brentford,0.0
+315,33,Sat,2022-04-17,Newcastle Utd,Leicester City,0.0
+316,33,Sat,2022-04-16,Tottenham,Brighton,-0.75
+317,33,Sat,2022-04-17,West Ham,Burnley,-0.75
 318,33,Sat,2022-04-16,Aston Villa,Liverpool,
 319,34,Sat,2022-04-23,Liverpool,Everton,
 320,34,Sat,2022-04-23,Leicester City,Aston Villa,
