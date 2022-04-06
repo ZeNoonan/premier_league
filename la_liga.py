@@ -10,9 +10,9 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=29
-finished_week=29
-# backed levante and mallorca all backed
+current_week=30
+finished_week=30
+# backed wed 6 april celta vigo
 home_point_advantage=.2
 home_adv_parameter = .3
 

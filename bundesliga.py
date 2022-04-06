@@ -10,8 +10,8 @@ st.set_page_config(layout="wide")
 
 # all backed leipzig, greuther furth and wolfsburg
 
-current_week=28
-finished_week=28
+current_week=29
+finished_week=29
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
@@ -19,11 +19,11 @@ placeholder_2=st.empty()
 home_point_advantage=.2
 home_adv_parameter = .3
 
-# all matches backed
+# all matches backed wed 6 april hoffenheim and wolfsburg
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
     
     @st.cache
