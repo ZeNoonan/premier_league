@@ -11,10 +11,11 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# backed watford, only bet
+# backed on tues 5 april aston villa and leicester
+# just check that the below runs with github ok
 
-current_week=29
-finished_week=29
+current_week=30
+finished_week=30
 
 home_point_advantage=0.2
 home_adv_parameter = .3
@@ -28,13 +29,11 @@ github_prior_year_odds='https://raw.githubusercontent.com/ZeNoonan/premier_leagu
 github_team_id='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_team_names_id.csv'
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
-    # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv',parse_dates=['Date'])
+    # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
     df=pd.read_csv(github_fbref_scores,parse_dates=['Date'])
 
     df=df.dropna(subset=['Wk'])
-    # st.write('duplicates in df??', df)
     def convert_df(df):
      # IMPORTANT: Cache the conversion to prevent computation on every rerun
         return df.to_csv().encode('utf-8')
@@ -44,11 +43,11 @@ with st.expander('df'):
 
     # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
-    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx',parse_dates=['Date'])
+    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx',parse_dates=['Date'])
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year.xlsx',parse_dates=['Date'])
     # odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds.csv')
     # prior_data.to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds.csv')
-    odds = pd.read_csv(github_current_odds,parse_dates=['Date'])
+    # odds = pd.read_csv(github_current_odds,parse_dates=['Date'])
     prior_data=pd.read_csv(github_prior_year_odds,parse_dates=['Date'])
 
     def concat_current_prior(x,y):
