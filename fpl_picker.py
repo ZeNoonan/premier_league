@@ -11,8 +11,8 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-future_gameweek=31
-current_week=30
+future_gameweek=32
+current_week=31
 current_year=2022
 
 with st.expander('Data Prep'):
