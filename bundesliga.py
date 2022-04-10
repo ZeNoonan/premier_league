@@ -8,7 +8,7 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# all backed leipzig, greuther furth and wolfsburg
+# all backed greuther furth and wolfsburg and hoffenheim now...
 
 current_week=29
 finished_week=29
