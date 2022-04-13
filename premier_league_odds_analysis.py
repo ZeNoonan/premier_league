@@ -11,11 +11,11 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# backed on tues 5 april aston villa and leicester
+# backed on tues 11 april watford and brighton, need to make sure that the wed games are updated
 # just check that the below runs with github ok
 
-current_week=30
-finished_week=30
+current_week=31
+finished_week=31
 
 home_point_advantage=0.2
 home_adv_parameter = .3
@@ -23,8 +23,10 @@ home_adv_parameter = .3
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
-github_fbref_scores='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/scores.csv'
-github_current_odds='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_odds.csv'
+github_fbref_scores='C:/Users/Darragh/Documents/Python/premier_league/scores.csv'
+# github_fbref_scores='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/scores.csv'
+github_current_odds='C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds.csv'
+# github_current_odds='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_odds.csv'
 github_prior_year_odds='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/prior_premier_league_odds.csv'
 github_team_id='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_team_names_id.csv'
 
@@ -45,7 +47,7 @@ with st.expander('df'):
 
     odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx',parse_dates=['Date'])
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year.xlsx',parse_dates=['Date'])
-    # odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds.csv')
+    odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds.csv')
     # prior_data.to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds.csv')
     # odds = pd.read_csv(github_current_odds,parse_dates=['Date'])
     prior_data=pd.read_csv(github_prior_year_odds,parse_dates=['Date'])
