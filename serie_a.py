@@ -7,8 +7,8 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=31
-finished_week=31
+current_week=32
+finished_week=32
 # all backed wed 6 april genoa salernita venezia
 placeholder_1=st.empty()
 placeholder_2=st.empty()
