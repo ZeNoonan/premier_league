@@ -19,8 +19,6 @@ home_adv_parameter = .3
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
-# all backed
-
 with st.expander('df'):
     dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
     dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')

@@ -19,8 +19,6 @@ placeholder_2=st.empty()
 home_point_advantage=.2
 home_adv_parameter = .3
 
-# all matches backed wed 6 april hoffenheim and wolfsburg
-
 with st.expander('df'):
     dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
     dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')

@@ -583,10 +583,13 @@ with st.expander('GW Detail with Latest Transfers'):
     current_data_week=rank_calc(current_data_week)
     current_data_week=rank_total_calc(current_data_week)
     current_data_week['week']=current_week+1
+    # st.write('update', current_data_week)
     current_data_week=current_data_week[current_data_week['games_2022_rolling']>1]
     current_week_projections = current_data_week.drop(['Unnamed: 0'],axis=1).set_index('full_name').sort_values(by=['totals_ranked'],ascending=True) 
     st.write('Projections', current_week_projections.style.format(format_mapping))
+    st.write('Defs', current_week_projections[current_week_projections['Position']=='DF'].style.format(format_mapping))
     st.write('Mids', current_week_projections[current_week_projections['Position']=='MD'].style.format(format_mapping))
+    st.write('Strikers', current_week_projections[current_week_projections['Position']=='FW'].style.format(format_mapping))
     
 with st.expander('GW Graph with Latest Transfers'):    
     current_data_week=current_data_week.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
