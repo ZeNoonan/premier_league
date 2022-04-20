@@ -11,11 +11,11 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# backed on tues 11 april watford and brighton, need to make sure that the wed games are updated
+# backed games for 20 april, need to run for weekend games as different gameweek
 # just check that the below runs with github ok
 
-current_week=31
-finished_week=31
+current_week=32
+finished_week=32
 
 home_point_advantage=0.2
 home_adv_parameter = .3
@@ -31,8 +31,8 @@ github_prior_year_odds='https://raw.githubusercontent.com/ZeNoonan/premier_leagu
 github_team_id='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_team_names_id.csv'
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores.csv')
     df=pd.read_csv(github_fbref_scores,parse_dates=['Date'])
 
     df=df.dropna(subset=['Wk'])

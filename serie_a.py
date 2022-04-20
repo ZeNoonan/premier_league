@@ -9,7 +9,7 @@ import seaborn as sns
 st.set_page_config(layout="wide")
 current_week=32
 finished_week=32
-# all backed wed 6 april genoa salernita venezia
+# all backed 19 april salernita, need to update for weekend and run fbref again seems to be an issue
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
@@ -20,7 +20,7 @@ home_adv_parameter = .3
 
 with st.expander('df'):
     dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
+    # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
     dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv',parse_dates=['Date'])
     
@@ -681,6 +681,7 @@ with st.expander('Analysis of Factors'):
     analysis_factors = betting_matches.copy()
     analysis_factors=analysis_factors[analysis_factors['Week']<finished_week+1]
     def analysis_factor_function(analysis_factors):
+        # sourcery skip: remove-unnecessary-else, swap-if-else-branches
         analysis_factors['home_turnover_success?'] = analysis_factors['home_turnover_sign'] * analysis_factors['home_cover_result']
         analysis_factors['away_turnover_success?'] = analysis_factors['away_turnover_sign'] * analysis_factors['home_cover_result']
         analysis_factors['home_cover_season_success?'] = analysis_factors['home_cover_sign'] * analysis_factors['home_cover_result']  
