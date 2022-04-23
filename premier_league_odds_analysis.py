@@ -11,11 +11,11 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# backed games for 20 april, need to run for weekend games as different gameweek
+# all backed for 23 april
 # just check that the below runs with github ok
 
-current_week=32
-finished_week=32
+current_week=33
+finished_week=33
 
 home_point_advantage=0.2
 home_adv_parameter = .3
