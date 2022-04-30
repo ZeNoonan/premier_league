@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from io import BytesIO
-import os
+import sasoptpy as so
 import base64 
 import altair as alt
 from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode, JsCode
@@ -11,8 +11,8 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-future_gameweek=33
-current_week=32
+future_gameweek=35
+current_week=34
 current_year=2022
 
 with st.expander('Data Prep'):
@@ -429,7 +429,7 @@ with st.expander('To run the GW analysis'):
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
         
         return df1
-    run_gw_analysis()
+    # run_gw_analysis()
 
 
 with st.expander('Analyse GW data Player Level'):
@@ -579,12 +579,22 @@ with st.expander('GW Detail with Latest Transfers'):
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
 
+    current_data_week=current_data_week[current_data_week['games_2022_rolling']>1]
+    # st.write('check before 1',current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
+    current_data_week=current_data_week.dropna(subset=['games_2022_rolling'])
+    # st.write('check after 2',current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
     current_data_week=merge_latest_transfers(current_data_week)
+    current_data_week=current_data_week.dropna(subset=['games_2022_rolling'])
+    # st.write('check after 3',current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
     current_data_week=rank_calc(current_data_week)
+
+    # st.write('this is before rank calc', current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
     current_data_week=rank_total_calc(current_data_week)
+    # st.write('this is after rank calc', current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
+    # st.write('check current data week', current_data_week)
     current_data_week['week']=current_week+1
     # st.write('update', current_data_week)
-    current_data_week=current_data_week[current_data_week['games_2022_rolling']>1]
+    # current_data_week=current_data_week[current_data_week['games_2022_rolling']>1]
     current_week_projections = current_data_week.drop(['Unnamed: 0'],axis=1).set_index('full_name').sort_values(by=['totals_ranked'],ascending=True) 
     st.write('Projections', current_week_projections.style.format(format_mapping))
     st.write('Defs', current_week_projections[current_week_projections['Position']=='DF'].style.format(format_mapping))
@@ -619,3 +629,30 @@ with st.expander('GW Graph with My Players'):
     # https://vega.github.io/vega/docs/schemes/
     text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
+
+with st.expander('Optimisation'):
+    # https://github.com/sertalpbilal/FPL-Optimization-Tools/blob/main/notebooks/Tutorial%202%20-%20Single%20Period%20FPL.ipynb
+    df_opt=my_players_data.loc[:,['Team','Position','average']].rename(columns={'Team':'full_name'}).drop_duplicates(subset=['full_name'])
+    df_opt_1=latest_df.loc[:,['full_name','team']].drop_duplicates(subset=['full_name'])
+    df_opt_2=pd.merge(df_opt,df_opt_1,on='full_name', how='outer')
+    st.write('test',df_opt)
+    st.write('test',df_opt_1.head())
+    st.write('test', df_opt_2.head())
+    model = so.Model(name='single_period')
+    players = df_opt_2['full_name'].to_list()
+    element_types = df_opt_2['Position'].to_list()
+    teams = df_opt_2['team'].to_list()
+    squad = model.add_variables(players, name='squad', vartype=so.binary)
+    lineup = model.add_variables(players, name='lineup', vartype=so.binary)
+    captain = model.add_variables(players, name='captain', vartype=so.binary)
+    vicecap = model.add_variables(players, name='vicecap', vartype=so.binary)
+    squad_count = so.expr_sum(squad[p] for p in players)
+    model.add_constraint(squad_count == 15, name='squad_count')
+    model.add_constraint(so.expr_sum(lineup[p] for p in players) == 11, name='lineup_count')
+    model.add_constraint(so.expr_sum(captain[p] for p in players) == 1, name='captain_count')
+    model.add_constraint(so.expr_sum(vicecap[p] for p in players) == 1, name='vicecap_count')
+    model.add_constraints((lineup[p] <= squad[p] for p in players), name='lineup_squad_rel')
+    model.add_constraints((captain[p] <= lineup[p] for p in players), name='captain_lineup_rel')
+    model.add_constraints((vicecap[p] <= lineup[p] for p in players), name='vicecap_lineup_rel')
+    model.add_constraints((captain[p] + vicecap[p] <= 1 for p in players), name='cap_vc_rel')
+    
