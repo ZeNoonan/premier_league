@@ -7,9 +7,9 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=34
-finished_week=34
-# all backed 25 april except for venezia 5 may, also need to rerun fbref for 25 april game
+current_week=35
+finished_week=35
+# all backed 3 may
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 

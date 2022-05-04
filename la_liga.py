@@ -10,9 +10,9 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=32
-finished_week=32
-# backed 19 april
+current_week=34
+finished_week=34
+# backed 3 may only backed atletico only game at weekend
 home_point_advantage=.2
 home_adv_parameter = .3
 

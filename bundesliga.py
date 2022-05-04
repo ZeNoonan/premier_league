@@ -8,10 +8,10 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# 20 april all teams backed gladbach
+# 3 may all backed
 
-current_week=30
-finished_week=30
+current_week=32
+finished_week=32
 
 placeholder_1=st.empty()
 placeholder_2=st.empty()
