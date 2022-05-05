@@ -1,3 +1,4 @@
+from tkinter import N
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -631,16 +632,22 @@ with st.expander('GW Graph with My Players'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('Optimisation'):
+    # st.write('df opt', latest_df.head())
     # https://github.com/sertalpbilal/FPL-Optimization-Tools/blob/main/notebooks/Tutorial%202%20-%20Single%20Period%20FPL.ipynb
-    df_opt=my_players_data.loc[:,['Team','Position','average']].rename(columns={'Team':'full_name'}).drop_duplicates(subset=['full_name'])
-    df_opt_1=latest_df.loc[:,['full_name','team']].drop_duplicates(subset=['full_name'])
-    df_opt_2=pd.merge(df_opt,df_opt_1,on='full_name', how='outer')
-    st.write('test',df_opt)
-    st.write('test',df_opt_1.head())
-    st.write('test', df_opt_2.head())
+    df_opt=my_players_data.loc[:,['Team','Position','average']].rename(columns={'Team':'name'}).drop_duplicates(subset=['name'])
+    df_opt['element_type']=df_opt['Position'].replace({'DF':2,'GK':1,'MD':3,'FW':4})
+    df_opt['squad_select']=df_opt['Position'].replace({'DF':5,'GK':2,'MD':5,'FW':3})
+    df_opt['squad_min_play']=df_opt['Position'].replace({'DF':3,'GK':1,'MD':2,'FW':1})
+    df_opt['squad_max_play']=df_opt['Position'].replace({'DF':5,'GK':1,'MD':5,'FW':3})
+    df_opt_1=latest_df.loc[:,['full_name','team','Price']].drop_duplicates(subset=['full_name']).rename(columns={'Price':'now_cost','full_name':'name'})
+    df_opt_2=pd.merge(df_opt,df_opt_1,on='name', how='outer').reset_index().rename(columns={'index':'id','average':'30_Pts'})
+    # st.write('test',df_opt)
+    # st.write('test',df_opt_1.head())
+    st.write('test', df_opt_2.head(1))
     model = so.Model(name='single_period')
-    players = df_opt_2['full_name'].to_list()
-    element_types = df_opt_2['Position'].to_list()
+    # players = df_opt_2['name'].to_list() # should be using ID here....
+    players = df_opt_2['id'].to_list() # should be using ID here....
+    element_types = df_opt_2['element_type'].to_list()
     teams = df_opt_2['team'].to_list()
     squad = model.add_variables(players, name='squad', vartype=so.binary)
     lineup = model.add_variables(players, name='lineup', vartype=so.binary)
@@ -655,4 +662,42 @@ with st.expander('Optimisation'):
     model.add_constraints((captain[p] <= lineup[p] for p in players), name='captain_lineup_rel')
     model.add_constraints((vicecap[p] <= lineup[p] for p in players), name='vicecap_lineup_rel')
     model.add_constraints((captain[p] + vicecap[p] <= 1 for p in players), name='cap_vc_rel')
-    
+    lineup_type_count = {t: so.expr_sum(lineup[p] for p in players if df_opt_2.loc[p, 'element_type'] == t) for t in element_types}
+    squad_type_count = {t: so.expr_sum(squad[p] for p in players if df_opt_2.loc[p, 'element_type'] == t) for t in element_types}
+    model.add_constraints((lineup_type_count[t] == [df_opt_2.loc[t, 'squad_min_play'], df_opt_2.loc[t, 'squad_max_play']] for t in element_types), name='valid_formation')
+    model.add_constraints((squad_type_count[t] == df_opt_2.loc[t, 'squad_select'] for t in element_types), name='valid_squad')
+    budget=100
+    price = so.expr_sum(df_opt_2.loc[p, 'now_cost'] / 10 * squad[p] for p in players)
+    model.add_constraint(price <= budget, name='budget_limit')
+    model.add_constraints((so.expr_sum(squad[p] for p in players if df_opt_2.loc[p, 'name'] == t) <= 3 for t in teams), name='team_limit')
+    next_gw=30
+    total_points = so.expr_sum(df_opt_2.loc[p, f'{next_gw}_Pts'] * (lineup[p] + captain[p] + 0.1 * vicecap[p]) for p in players)
+    model.set_objective(-total_points, sense='N', name='total_xp')
+    model.export_mps('single_period.mps')
+    command = 'cbc single_period.mps solve solu solution_sp.txt'
+    st.write({command})
+    # !{command}
+    for v in model.get_variables():
+        v.set_value(0)
+    with open('solution_sp.txt', 'r') as f:
+        for line in f:
+            if 'objective value' in line:
+                continue
+            words = line.split()
+            var = model.get_variable(words[1])
+            var.set_value(float(words[2]))
+
+    picks = []
+    for p in players:
+        if squad[p].get_value() > 0.5:
+            lp = df_opt_2.loc[p]
+            is_captain = 1 if captain[p].get_value() > 0.5 else 0
+            is_lineup = 1 if lineup[p].get_value() > 0.5 else 0
+            is_vice = 1 if vicecap[p].get_value() > 0.5 else 0
+            position = df_opt_2.loc[lp['element_type'], 'Position']
+            picks.append([
+                lp['web_name'], position, lp['element_type'], lp['name'], lp['now_cost']/10, round(lp[f'{next_gw}_Pts'], 2), is_lineup, is_captain, is_vice
+            ])
+
+    picks_df = pd.DataFrame(picks, columns=['name', 'pos', 'type', 'team', 'price', 'xP', 'lineup', 'captain', 'vicecaptain']).sort_values(by=['lineup', 'type', 'xP'], ascending=[False, True, True])
+    st.write(picks_df)
