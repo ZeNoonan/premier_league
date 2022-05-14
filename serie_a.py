@@ -7,9 +7,9 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=35
-finished_week=35
-# all backed 3 may
+current_week=36
+finished_week=36
+# all backed 13 may
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
@@ -20,7 +20,7 @@ home_adv_parameter = .3
 
 with st.expander('df'):
     dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
+    # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
     dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv',parse_dates=['Date'])
     
