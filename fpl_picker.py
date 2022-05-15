@@ -12,8 +12,8 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-future_gameweek=35
-current_week=34
+future_gameweek=37
+current_week=36
 current_year=2022
 
 with st.expander('Data Prep'):
@@ -430,7 +430,7 @@ with st.expander('To run the GW analysis'):
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
         
         return df1
-    # run_gw_analysis()
+    run_gw_analysis()
 
 
 with st.expander('Analyse GW data Player Level'):
