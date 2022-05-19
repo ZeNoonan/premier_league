@@ -8,6 +8,7 @@ import base64
 import altair as alt
 from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode, JsCode
 import seaborn as sns
+import os
 
 
 st.set_page_config(layout="wide")
@@ -674,8 +675,8 @@ with st.expander('Optimisation'):
     total_points = so.expr_sum(df_opt_2.loc[p, f'{next_gw}_Pts'] * (lineup[p] + captain[p] + 0.1 * vicecap[p]) for p in players)
     model.set_objective(-total_points, sense='N', name='total_xp')
     model.export_mps('single_period.mps')
-    command = 'cbc single_period.mps solve solu solution_sp.txt'
-    st.write({command})
+    os.system('cbc single_period.mps solve solu solution_sp.txt')
+    # st.write({command})
     # !{command}
     for v in model.get_variables():
         v.set_value(0)

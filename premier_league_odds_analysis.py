@@ -11,11 +11,11 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# all backed 3 May, just need to back one game aston villa versus liverpool 10 may
+# all backed 14 May, just need to back midweek games
 # just check that the below runs with github ok
 
-current_week=35
-finished_week=35
+current_week=36
+finished_week=36
 
 home_point_advantage=0.2
 home_adv_parameter = .3
