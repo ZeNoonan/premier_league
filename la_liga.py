@@ -12,7 +12,7 @@ import seaborn as sns
 st.set_page_config(layout="wide")
 current_week=36
 finished_week=36
-# backed 3 may only backed atletico only game at weekend
+# backed 17 may
 home_point_advantage=.2
 home_adv_parameter = .3
 

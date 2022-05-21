@@ -16,7 +16,7 @@ placeholder_2=st.empty()
 home_point_advantage=.2
 home_adv_parameter = .3
 
-# all matches backed
+# all matches backed 16 may
 
 with st.expander('df'):
     dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
