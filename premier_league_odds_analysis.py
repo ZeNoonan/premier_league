@@ -11,11 +11,11 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# all backed 14 May, just need to back midweek games
+# all backed 21 May
 # just check that the below runs with github ok
 
-current_week=36
-finished_week=36
+current_week=38
+finished_week=38
 
 home_point_advantage=0.2
 home_adv_parameter = .3

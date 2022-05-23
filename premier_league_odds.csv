@@ -357,23 +357,25 @@
 355,36,Sat,2022-05-11,Leicester City,Norwich City,-1.0
 356,36,Sat,2022-05-11,Wolves,Manchester City,1.5
 357,36,Sat,2022-05-12,Tottenham,Arsenal,-0.25
-358,37,Sun,2022-05-15,Manchester Utd,Chelsea,
-359,37,Sun,2022-05-15,Everton,Brentford,
-360,37,Sun,2022-05-15,Leeds United,Brighton,
-361,37,Sun,2022-05-15,Aston Villa,Crystal Palace,
-362,37,Sun,2022-05-15,Watford,Leicester City,
-363,37,Sun,2022-05-15,West Ham,Manchester City,
-364,37,Sun,2022-05-15,Southampton,Liverpool,
-365,37,Sun,2022-05-15,Wolves,Norwich City,
-366,37,Sun,2022-05-15,Newcastle Utd,Arsenal,
-367,37,Sun,2022-05-15,Tottenham,Burnley,
-368,38,Sun,2022-05-22,Norwich City,Tottenham,
-369,38,Sun,2022-05-22,Liverpool,Wolves,
-370,38,Sun,2022-05-22,Brighton,West Ham,
-371,38,Sun,2022-05-22,Brentford,Leeds United,
-372,38,Sun,2022-05-22,Manchester City,Aston Villa,
-373,38,Sun,2022-05-22,Burnley,Newcastle Utd,
-374,38,Sun,2022-05-22,Arsenal,Everton,
-375,38,Sun,2022-05-22,Chelsea,Watford,
-376,38,Sun,2022-05-22,Crystal Palace,Manchester Utd,
-377,38,Sun,2022-05-22,Leicester City,Southampton,
+358,37,Sun,2022-05-15,Everton,Brentford,-0.5
+359,37,Sun,2022-05-15,Leeds United,Brighton,0.0
+360,37,Sun,2022-05-15,Aston Villa,Crystal Palace,-0.5
+361,37,Sun,2022-05-15,Watford,Leicester City,0.5
+362,37,Sun,2022-05-15,West Ham,Manchester City,1.5
+363,37,Sun,2022-05-17,Southampton,Liverpool,1.25
+364,37,Sun,2022-05-15,Wolves,Norwich City,-1.25
+365,37,Sun,2022-05-16,Newcastle Utd,Arsenal,0.5
+366,37,Sun,2022-05-15,Tottenham,Burnley,-1.5
+367,37,Sun,2022-05-19,Everton,Crystal Palace,-0.5
+368,37,Sun,2022-05-19,Chelsea,Leicester City,-1.5
+369,37,Sun,2022-05-19,Aston Villa,Burnley,-0.5
+370,38,Sun,2022-05-22,Norwich City,Tottenham,1.75
+371,38,Sun,2022-05-22,Liverpool,Wolves,-2.25
+372,38,Sun,2022-05-22,Brighton,West Ham,0.0
+373,38,Sun,2022-05-22,Brentford,Leeds United,0.0
+374,38,Sun,2022-05-22,Manchester City,Aston Villa,-2.0
+375,38,Sun,2022-05-22,Burnley,Newcastle Utd,-0.25
+376,38,Sun,2022-05-22,Arsenal,Everton,-1.5
+377,38,Sun,2022-05-22,Chelsea,Watford,-2.25
+378,38,Sun,2022-05-22,Crystal Palace,Manchester Utd,0.25
+379,38,Sun,2022-05-22,Leicester City,Southampton,-0.75
