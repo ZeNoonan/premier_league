@@ -10,9 +10,11 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=36
-finished_week=36
-# backed 17 may
+current_week=38
+finished_week=38
+
+# re run to get the xg
+
 home_point_advantage=.2
 home_adv_parameter = .3
 
