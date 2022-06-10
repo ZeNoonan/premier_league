@@ -7,21 +7,21 @@ from st_aggrid import AgGrid, GridOptionsBuilder, AgGrid, GridUpdateMode, DataRe
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-current_week=36
-finished_week=36
-# all backed 13 may
+current_week=38
+finished_week=38
+
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
 home_point_advantage=.2
 home_adv_parameter = .3
 
-# all matches backed 16 may
+
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
     # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv',parse_dates=['Date'])
     
     df=df.dropna(subset=['Wk'])
@@ -735,7 +735,7 @@ with st.expander('Analysis of Factors'):
     total_factor_table_presentation = total_factor_table.style.format("{:.1f}", na_rep='-')
     # st.write('all ok in here?????',total_factor_table_presentation)
     total_factor_table_presentation = total_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     
     st.write(total_factor_table_presentation)
@@ -754,9 +754,9 @@ with st.expander('Analysis of Factors'):
     st.write(bets_made_factor_table_presentation)
 
 
-    # st.write('graph work below')
-    graph_factor_table = total_factor_table.copy().loc[['-1.0','0.0','1.0'],:].reset_index().rename(columns={'index':'result_all'})
-    graph_factor_table['result_all']=graph_factor_table['result_all'].replace({'0.0':'tie','1.0':'win','-1.0':'lose'})
+    # st.write('why is 0 missing>>>???', total_factor_table)
+    graph_factor_table = total_factor_table.copy().loc[['-1.0','-0.0','1.0'],:].reset_index().rename(columns={'index':'result_all'})
+    graph_factor_table['result_all']=graph_factor_table['result_all'].replace({'-0.0':'tie','1.0':'win','-1.0':'lose'})
     graph_factor_table=graph_factor_table.melt(id_vars='result_all',var_name='total_factor',value_name='winning')
     chart_power= alt.Chart(graph_factor_table).mark_bar().encode(alt.X('total_factor:O',axis=alt.Axis(title='factor',labelAngle=0)),
     alt.Y('winning'),color=alt.Color('result_all',scale=color_scale))
