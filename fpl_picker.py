@@ -241,7 +241,7 @@ with st.expander('Player Stats Latest'):
     latest_df = ranked_players(latest_df)
     latest_df = value_rank(latest_df)
 
-    weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
+    weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_1.csv',col_selection=['full_name','transfers_balance'])
     def merge_latest_transfers(x):
         return pd.merge(x,weekly_transfers_in,on=['full_name'],how='right')
 
@@ -376,7 +376,7 @@ with st.expander('To run the GW analysis'):
                 # only want players who played greater than a season ie 38 games big sample size
                 x = x[x['games_total']>38]
                 # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
-                x['ppg_76_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+                x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
                 return x
 
             def value_rank(x):
@@ -384,8 +384,9 @@ with st.expander('To run the GW analysis'):
                 x['%_selected']=x['selected'] / x['total_selected']
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.75)
-                x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.5)
-                # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
+                x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
+                # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.25) # still doesnt look right
+                # x['value_ppg']=x['last_76_ppg']/(x['%_selected']) # this definitely doesn't work, crazy results
                 x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
                 x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
                 return x
@@ -393,7 +394,7 @@ with st.expander('To run the GW analysis'):
             latest_df = ranked_players(latest_df)
             latest_df = value_rank(latest_df)
 
-            weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
+            weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_1.csv',col_selection=['full_name','transfers_balance'])
             def merge_latest_transfers(x):
                 return pd.merge(x,weekly_transfers_in,on=['full_name'],how='right')
 
@@ -407,7 +408,7 @@ with st.expander('To run the GW analysis'):
                 return x
 
             def rank_total_calc(x):
-                col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
+                col_list_1=['ppg_38_rank','value_rank','net_transfers_rank']
                 x['total_sum_rank']=x[col_list_1].sum(axis=1)
                 x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
                 return x
@@ -417,8 +418,8 @@ with st.expander('To run the GW analysis'):
             latest_df = rank_total_calc(latest_df)
 
             cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
-            'ppg_76_rank','value_rank','net_transfers_rank','last_76_ppg','value_ppg','selected_rank','transfers_balance',
-            'last_38_ppg','last_19_ppg','games_total','last_38_games','selected']
+            'ppg_38_rank','value_rank','net_transfers_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
+            'last_76_ppg','last_19_ppg','games_total','last_38_games','selected']
             cols = cols_to_move + [col for col in latest_df if col not in cols_to_move]
             latest_df=((latest_df[cols].sort_values(by=['totals_ranked'],ascending=True)))
             # latest_df=latest_df.loc[:['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
@@ -429,9 +430,10 @@ with st.expander('To run the GW analysis'):
 
         df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_historical.csv')
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
+        # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value_test_0.csv')
         
         return df1
-    run_gw_analysis()
+    # run_gw_analysis()
 
 
 with st.expander('Analyse GW data Player Level'):
@@ -441,6 +443,7 @@ with st.expander('Analyse GW data Player Level'):
 
     # data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
     data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_historical.csv')
+    # data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value_test_0.csv')
     
     data_for_processing_current_transfers=data.copy()
     # st.write(data)
@@ -560,15 +563,55 @@ with st.expander('Graph GK data'):
 
 with st.expander('GW Detail with Latest Transfers'):
     # current_week=22
-    test_data=data_for_processing_current_transfers.drop(['transfers_balance'],axis=1).copy()
-    current_data_week=(test_data[test_data['week']==current_week]).copy()
-    # st.write(current_data_week.sort_values(by=['Clean_Pts'],ascending=False))
+    test_data=data_for_processing_current_transfers.drop(['transfers_balance','Price'],axis=1).copy()
+    # st.write('check before 0',test_data.drop_duplicates(subset=['full_name'],keep='last'))
+    current_data_week=test_data.drop_duplicates(subset=['full_name'],keep='last')
+    # current_data_week=(test_data[test_data['week']==current_week]).copy()
+    # st.write('check before 0',current_data_week[current_data_week['full_name'].str.contains('alonso')])
+    st.write(current_data_week.sort_values(by=['Clean_Pts'],ascending=False))
     # current_data_week=current_data_week.copy()
 
-    weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
+    weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_1.csv',col_selection=['full_name','transfers_balance','Price'])
+    # st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('alonso')])
+    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='son_heung-min'), 'full_name' ] = 'heung-min_son'
+    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='ben_chilwell'), 'full_name' ] = 'benjamin_chilwell'
+    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='gabriel_dos santos magalhães'), 'full_name' ] = 'gabriel_magalhães'
+    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='bruno_borges fernandes'), 'full_name' ] = 'bruno miguel_borges fernandes'
+    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='joão_cancelo'), 'full_name' ] = 'joão pedro cavaco_cancelo'
+    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='gabriel_fernando de jesus'), 'full_name' ] = 'gabriel fernando_de jesus'
+    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='diogo_teixeira da silva'), 'full_name' ] = 'diogo_jota'
+    # weekly_transfers_in=weekly_transfers_in.set_index('full_name')
+    # weekly_transfers_in.loc["son_heung-min",'full_name']="heung-min_son"
+    # st.write(weekly_transfers_in['full_name']=="son_heung-min")
+    # weekly_transfers_in=weekly_transfers_in.reset_index()
+    st.write('jota', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('diogo')])
+    # st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('cancelo')])
+    st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('christian')]) # no price for christian ericsen
+    # st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('gabriel')])
+    # st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('bruno')])
+    # weekly_transfers_in_before=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in.csv',col_selection=['full_name','transfers_balance'])
+    # st.write('latest', weekly_transfers_in_before)
     def merge_latest_transfers(x):
         return pd.merge(x,weekly_transfers_in,on=['full_name'],how='right')
 
+    def ranked_players(x):
+        # only want players who played greater than a season ie 38 games big sample size
+        x = x[x['games_total']>38]
+        # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
+        x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+        return x
+
+    def value_rank(x):
+        x['total_selected']=9000000
+        x['%_selected']=x['selected'] / x['total_selected']
+        # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
+        # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.75)
+        x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
+        # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.25) # still doesnt look right
+        # x['value_ppg']=x['last_76_ppg']/(x['%_selected']) # this definitely doesn't work, crazy results
+        x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
+        x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
+        return x
     
     def rank_calc(x):
         # USE THIS FOR LATEST TRANSFERS IN WEEK
@@ -576,7 +619,7 @@ with st.expander('GW Detail with Latest Transfers'):
         return x
 
     def rank_total_calc(x):
-        col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
+        col_list_1=['ppg_38_rank','value_rank','net_transfers_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
@@ -584,24 +627,32 @@ with st.expander('GW Detail with Latest Transfers'):
     current_data_week=current_data_week[current_data_week['games_2022_rolling']>1]
     # st.write('check before 1',current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
     current_data_week=current_data_week.dropna(subset=['games_2022_rolling'])
-    # st.write('check after 2',current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
+    # st.write('check before 1',current_data_week[current_data_week['full_name'].str.contains('alonso')])
     current_data_week=merge_latest_transfers(current_data_week)
+    # st.write('check after 2',current_data_week[current_data_week['full_name'].str.contains('alonso')])
     current_data_week=current_data_week.dropna(subset=['games_2022_rolling'])
     # st.write('check after 3',current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
     current_data_week=rank_calc(current_data_week)
+    current_data_week=ranked_players(current_data_week)
+    current_data_week=value_rank(current_data_week)
 
+
+    # st.write('check after 3',current_data_week[current_data_week['full_name'].str.contains('alonso')])
     # st.write('this is before rank calc', current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
     current_data_week=rank_total_calc(current_data_week)
+    # st.write('check after 4',current_data_week[current_data_week['full_name'].str.contains('alonso')])
     # st.write('this is after rank calc', current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
     # st.write('check current data week', current_data_week)
     current_data_week['week']=current_week+1
     # st.write('update', current_data_week)
     # current_data_week=current_data_week[current_data_week['games_2022_rolling']>1]
     current_week_projections = current_data_week.drop(['Unnamed: 0'],axis=1).set_index('full_name').sort_values(by=['totals_ranked'],ascending=True) 
+    # st.write('check after 4',current_week_projections[current_week_projections['full_name'].str.contains('alonso')])
     st.write('Projections', current_week_projections.style.format(format_mapping))
     st.write('Defs', current_week_projections[current_week_projections['Position']=='DF'].style.format(format_mapping))
     st.write('Mids', current_week_projections[current_week_projections['Position']=='MD'].style.format(format_mapping))
     st.write('Strikers', current_week_projections[current_week_projections['Position']=='FW'].style.format(format_mapping))
+    st.write('Goalies', current_week_projections[current_week_projections['Position']=='GK'].style.format(format_mapping))
     
 with st.expander('GW Graph with Latest Transfers'):    
     current_data_week=current_data_week.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
