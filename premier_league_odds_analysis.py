@@ -23,24 +23,31 @@ home_adv_parameter = .3
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
-github_fbref_scores='C:/Users/Darragh/Documents/Python/premier_league/scores_2021_2022.csv'
+# github_fbref_scores='C:/Users/Darragh/Documents/Python/premier_league/scores_2021_2022.csv'
+github_fbref_scores='C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv'
 # github_fbref_scores='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/scores.csv'
 github_current_odds='C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.csv'
+
 # github_current_odds='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_odds.csv'
 # github_prior_year_odds='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/prior_premier_league_odds.csv'
-github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2020_2021.csv'
+# github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2020_2021.csv'
+github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2021_2022.csv'
+# x='C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2021_2022.xlsx'
+# pd.read_excel(x).to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2021_2022.csv')
 # github_team_id='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_team_names_id.csv'
-github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2021_2022.csv'
+# github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2021_2022.csv'
+github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2022_2023.csv'
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-    dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
+    # dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
 
-    st.download_button(label="Download data as CSV",data=dfa[0].to_csv().encode('utf-8'),file_name='large_df.csv',mime='text/csv')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
+    # st.download_button(label="Download data as CSV",data=dfa[0].to_csv().encode('utf-8'),file_name='large_df.csv',mime='text/csv')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
     df=pd.read_csv(github_fbref_scores,parse_dates=['Date'])
 
     df=df.dropna(subset=['Wk'])
+    # st.write('this is df', df)
     def convert_df(df):
      # IMPORTANT: Cache the conversion to prevent computation on every rerun
         return df.to_csv().encode('utf-8')
@@ -50,7 +57,8 @@ with st.expander('df'):
 
     # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
-    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.xlsx',parse_dates=['Date'])
+    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.xlsx',parse_dates=['Date'])
+    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.xlsx',parse_dates=['Date'])
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year.xlsx',parse_dates=['Date'])
 
     # odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds.csv')
@@ -70,10 +78,10 @@ with st.expander('df'):
     # st.write('Date type in odds',odds['Date'].dtype)
     # st.write('Date type in df',df['Date'].dtype)
     # st.write('this is df', df)
-    merged_df = pd.merge(df,odds,on=['Date','Home','Away'],how='outer').drop(['Day_y','Wk_x'],axis=1)\
+    merged_df = pd.merge(df,odds,on=['Date','Home','Away','Notes'],how='outer').drop(['Day_y','Wk_x'],axis=1)\
         .rename(columns={'xG_x':'xG','xG.1_x':'xG.1','Score_x':'Score','Day_x':'Day','Date_x':'Date','Home':'Home Team','Away':'Away Team','Wk_y':'Week'})
     # st.write('merged df',merged_df[merged_df['Spread'].isna()])
-    # st.write('DUPLICATES IN HERE?? merged df',merged_df)
+    # st.write('Notes IN HERE?? merged df',merged_df)
     # https://stackoverflow.com/questions/35552874/get-first-letter-of-a-string-from-column
     merged_df['Home Points'] = [str(x)[0] for x in merged_df['Score']]
     merged_df['Away Points'] = [str(x)[2] for x in merged_df['Score']]
