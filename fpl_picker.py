@@ -132,7 +132,7 @@ with st.expander('Data Prep'):
     full_df = combine_dataframes(data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
     # full_df = combine_dataframes_historical(data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
 
-    # st.write(data_2022.head())
+    st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
     # st.write(data_2021.head())
     # st.write(data_2020[data_2020['full_name'].str.contains('salah')])
 
@@ -146,7 +146,7 @@ with st.expander('Data Prep'):
 
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
-    # st.write('full df z', df)
+    st.write('full df z', df[ (df['year']==2022) & (df['week']==3) ].sort_values(by='week_points',ascending=False))
 
     @st.cache(suppress_st_warning=True)
     def column_calcs_2(df):
@@ -201,6 +201,7 @@ with st.expander('Data Prep'):
     'value_ppg':"{:,.0f}",'value_rank':"{:,.0f}",'selected_rank':"{:,.0f}",'transfers_balance':"{:,.0f}",
     'net_transfers_rank':"{:,.0f}",'totals_ranked':"{:,.0f}",'ppg_38_rank':"{:,.0f}",'ppg_19_rank':"{:,.0f}",
     'year':"{:,.0f}",'totals_ranked':"{:,.0f}"}
+    st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
 
 with st.expander('Player Detail by Week'):
     player_names_pick=full_df['full_name'].unique()
@@ -365,6 +366,7 @@ with st.expander('Player Stats Latest'):
 #     # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_1.csv')
 
 with st.expander('To run the GW analysis'):
+    
     def run_gw_analysis():
     # st.write('full df',full_df['full_name'])
         raw_data = []
@@ -456,6 +458,7 @@ with st.expander('Analyse GW data Player Level'):
     # data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value_test_0.csv')
     
     data_for_processing_current_transfers=data.copy()
+    st.write('this is mitro df',data_for_processing_current_transfers[data_for_processing_current_transfers['full_name'].str.contains('mitro')])
     # st.write(data)
     # st.write(data[data['full_name'].str.contains('bowen')])
     # player_detail_data=data.copy().drop('Unnamed: 0',axis=1)
@@ -578,11 +581,11 @@ with st.expander('GW Detail with Latest Transfers'):
     current_data_week=test_data.drop_duplicates(subset=['full_name'],keep='last')
     # current_data_week=(test_data[test_data['week']==current_week]).copy()
     # st.write('check before 0',current_data_week[current_data_week['full_name'].str.contains('alonso')])
-    st.write(current_data_week.sort_values(by=['Clean_Pts'],ascending=False))
+    # st.write(current_data_week.sort_values(by=['Clean_Pts'],ascending=False))
     # current_data_week=current_data_week.copy()
 
     weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_1.csv',col_selection=['full_name','transfers_balance','Price'])
-    # st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('alonso')])
+    st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('mitro')])
     weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='son_heung-min'), 'full_name' ] = 'heung-min_son'
     weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='ben_chilwell'), 'full_name' ] = 'benjamin_chilwell'
     weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='gabriel_dos santos magalhães'), 'full_name' ] = 'gabriel_magalhães'
@@ -635,7 +638,7 @@ with st.expander('GW Detail with Latest Transfers'):
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
 
-    current_data_week=current_data_week[current_data_week['games_2022_rolling']>1]
+    # current_data_week=current_data_week[current_data_week['games_2022_rolling']>1] # UNTICK THIS IF YOU WANT CURRENT SEASON ONLY
     # st.write('check before 1',current_data_week[current_data_week['full_name'].str.contains('l_dennis')])
     current_data_week=current_data_week.dropna(subset=['games_2022_rolling'])
     # st.write('check before 1',current_data_week[current_data_week['full_name'].str.contains('alonso')])
