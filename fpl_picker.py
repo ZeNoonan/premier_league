@@ -132,7 +132,7 @@ with st.expander('Data Prep'):
     full_df = combine_dataframes(data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
     # full_df = combine_dataframes_historical(data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
 
-    st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
+    # st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
     # st.write(data_2021.head())
     # st.write(data_2020[data_2020['full_name'].str.contains('salah')])
 
@@ -146,10 +146,11 @@ with st.expander('Data Prep'):
 
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
-    st.write('full df z', df[ (df['year']==2022) & (df['week']==3) ].sort_values(by='week_points',ascending=False))
+    # st.write('full df z', df[ (df['year']==2022) & (df['week']==3) ].sort_values(by='week_points',ascending=False))
 
     @st.cache(suppress_st_warning=True)
     def column_calcs_2(df):
+        df.loc[ ((df['full_name']==('aleksandar_mitrovic'))),'full_name' ] = 'aleksandar_mitrović'
         df_calc=df[df['Game_1']>0].copy()
 
         df_calc['last_76_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=76,min_periods=1, center=False).sum().reset_index(0,drop=True)
@@ -366,9 +367,15 @@ with st.expander('Player Stats Latest'):
 #     # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_1.csv')
 
 with st.expander('To run the GW analysis'):
-    
+    # st.write('this is solanke df',full_df.loc[ (full_df['full_name']==('solanke'))  ])
+    full_df.loc[ ((full_df['full_name']==('aleksandar_mitrović')) & (full_df['year']==2021)),'year' ] = 2022
+    # st.write('this is mitro df',full_df.loc[ (full_df['full_name']==('aleksandar_mitrović')) & (full_df['year']==2021) ])
+    # st.write('this is mitro df',full_df.loc[ (full_df['full_name']==('aleksandar_mitrović'))  ])
+    # test_df_mitro=full_df.set_index('full_name')
+    # st.write(test_df_mitro.loc[''])
     def run_gw_analysis():
     # st.write('full df',full_df['full_name'])
+        # st.write('this is mitro df',full_df.loc[ (full_df['full_name']==('aleksandar_mitrović'))  ])
         raw_data = []
         for n in range(1,future_gameweek): 
             # @st.cache(suppress_st_warning=True)
@@ -379,10 +386,15 @@ with st.expander('To run the GW analysis'):
                 # x = x[x['games_2022_rolling']>2] # want to exclude players who haven't played at all or less than once in 2022 season
                 return x[x['year'] == current_year]
 
+            # st.write('this is mitro df problem is here full df not picking up mitro',full_df.loc[ (full_df['full_name']==('aleksandar_mitrović'))  ])
+            
             latest_df = find_latest_player_stats(full_df)
+
+            # st.write('this is mitro df problem??',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
             # st.write('check this latest df', latest_df[latest_df['full_name'].str.contains('bowen')])
             latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
-            
+            # st.write('this is mitro df problem??',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
+            # st.write('this is mitro df',latest_df[ (latest_df['games_total']>38) & (latest_df['full_name']==('aleksandar_mitrović')) ] )
             def ranked_players(x):
                 # only want players who played greater than a season ie 38 games big sample size
                 x = x[x['games_total']>38]
@@ -403,8 +415,13 @@ with st.expander('To run the GW analysis'):
                 x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
                 return x
 
+            # st.write('this is mitro df',latest_df[ (latest_df['games_total']>38) & (latest_df['full_name']==('aleksandar_mitrović')) ] )
+            # st.write('this is mitro df problem??',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
             latest_df = ranked_players(latest_df)
+            # st.write('this is mitro df problem??',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
+            # st.write('this is mitro df',latest_df[ (latest_df['games_total']>38) & (latest_df['full_name']==('aleksandar_mitrović')) ] )
             latest_df = value_rank(latest_df)
+            # st.write('this is mitro df',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
 
             weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_1.csv',col_selection=['full_name','transfers_balance'])
             def merge_latest_transfers(x):
@@ -445,7 +462,7 @@ with st.expander('To run the GW analysis'):
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value_test_0.csv')
         
         return df1
-    # run_gw_analysis()
+    run_gw_analysis()
 
 
 with st.expander('Analyse GW data Player Level'):
@@ -584,8 +601,8 @@ with st.expander('GW Detail with Latest Transfers'):
     # st.write(current_data_week.sort_values(by=['Clean_Pts'],ascending=False))
     # current_data_week=current_data_week.copy()
 
-    weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_1.csv',col_selection=['full_name','transfers_balance','Price'])
-    st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('mitro')])
+    weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_1.csv',col_selection=['full_name','transfers_balance','Price']).copy()
+    # st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('mitro')])
     weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='son_heung-min'), 'full_name' ] = 'heung-min_son'
     weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='ben_chilwell'), 'full_name' ] = 'benjamin_chilwell'
     weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='gabriel_dos santos magalhães'), 'full_name' ] = 'gabriel_magalhães'
@@ -715,73 +732,73 @@ with st.expander('GW Graph with My Players'):
     text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
-with st.expander('Optimisation'):
-    # st.write('df opt', latest_df.head())
-    # https://github.com/sertalpbilal/FPL-Optimization-Tools/blob/main/notebooks/Tutorial%202%20-%20Single%20Period%20FPL.ipynb
-    df_opt=my_players_data.loc[:,['Team','Position','average']].rename(columns={'Team':'name'}).drop_duplicates(subset=['name'])
-    df_opt['element_type']=df_opt['Position'].replace({'DF':2,'GK':1,'MD':3,'FW':4})
-    df_opt['squad_select']=df_opt['Position'].replace({'DF':5,'GK':2,'MD':5,'FW':3})
-    df_opt['squad_min_play']=df_opt['Position'].replace({'DF':3,'GK':1,'MD':2,'FW':1})
-    df_opt['squad_max_play']=df_opt['Position'].replace({'DF':5,'GK':1,'MD':5,'FW':3})
-    df_opt_1=latest_df.loc[:,['full_name','team','Price']].drop_duplicates(subset=['full_name']).rename(columns={'Price':'now_cost','full_name':'name'})
-    df_opt_2=pd.merge(df_opt,df_opt_1,on='name', how='outer').reset_index().rename(columns={'index':'id','average':'30_Pts'})
-    # st.write('test',df_opt)
-    # st.write('test',df_opt_1.head())
-    st.write('test', df_opt_2.head(1))
-    model = so.Model(name='single_period')
-    # players = df_opt_2['name'].to_list() # should be using ID here....
-    players = df_opt_2['id'].to_list() # should be using ID here....
-    element_types = df_opt_2['element_type'].to_list()
-    teams = df_opt_2['team'].to_list()
-    squad = model.add_variables(players, name='squad', vartype=so.binary)
-    lineup = model.add_variables(players, name='lineup', vartype=so.binary)
-    captain = model.add_variables(players, name='captain', vartype=so.binary)
-    vicecap = model.add_variables(players, name='vicecap', vartype=so.binary)
-    squad_count = so.expr_sum(squad[p] for p in players)
-    model.add_constraint(squad_count == 15, name='squad_count')
-    model.add_constraint(so.expr_sum(lineup[p] for p in players) == 11, name='lineup_count')
-    model.add_constraint(so.expr_sum(captain[p] for p in players) == 1, name='captain_count')
-    model.add_constraint(so.expr_sum(vicecap[p] for p in players) == 1, name='vicecap_count')
-    model.add_constraints((lineup[p] <= squad[p] for p in players), name='lineup_squad_rel')
-    model.add_constraints((captain[p] <= lineup[p] for p in players), name='captain_lineup_rel')
-    model.add_constraints((vicecap[p] <= lineup[p] for p in players), name='vicecap_lineup_rel')
-    model.add_constraints((captain[p] + vicecap[p] <= 1 for p in players), name='cap_vc_rel')
-    lineup_type_count = {t: so.expr_sum(lineup[p] for p in players if df_opt_2.loc[p, 'element_type'] == t) for t in element_types}
-    squad_type_count = {t: so.expr_sum(squad[p] for p in players if df_opt_2.loc[p, 'element_type'] == t) for t in element_types}
-    model.add_constraints((lineup_type_count[t] == [df_opt_2.loc[t, 'squad_min_play'], df_opt_2.loc[t, 'squad_max_play']] for t in element_types), name='valid_formation')
-    model.add_constraints((squad_type_count[t] == df_opt_2.loc[t, 'squad_select'] for t in element_types), name='valid_squad')
-    budget=100
-    price = so.expr_sum(df_opt_2.loc[p, 'now_cost'] / 10 * squad[p] for p in players)
-    model.add_constraint(price <= budget, name='budget_limit')
-    model.add_constraints((so.expr_sum(squad[p] for p in players if df_opt_2.loc[p, 'name'] == t) <= 3 for t in teams), name='team_limit')
-    next_gw=30
-    total_points = so.expr_sum(df_opt_2.loc[p, f'{next_gw}_Pts'] * (lineup[p] + captain[p] + 0.1 * vicecap[p]) for p in players)
-    model.set_objective(-total_points, sense='N', name='total_xp')
-    model.export_mps('single_period.mps')
-    os.system('cbc single_period.mps solve solu solution_sp.txt')
-    # st.write({command})
-    # !{command}
-    for v in model.get_variables():
-        v.set_value(0)
-    with open('solution_sp.txt', 'r') as f:
-        for line in f:
-            if 'objective value' in line:
-                continue
-            words = line.split()
-            var = model.get_variable(words[1])
-            var.set_value(float(words[2]))
+# with st.expander('Optimisation'):
+#     # st.write('df opt', latest_df.head())
+#     # https://github.com/sertalpbilal/FPL-Optimization-Tools/blob/main/notebooks/Tutorial%202%20-%20Single%20Period%20FPL.ipynb
+#     df_opt=my_players_data.loc[:,['Team','Position','average']].rename(columns={'Team':'name'}).drop_duplicates(subset=['name'])
+#     df_opt['element_type']=df_opt['Position'].replace({'DF':2,'GK':1,'MD':3,'FW':4})
+#     df_opt['squad_select']=df_opt['Position'].replace({'DF':5,'GK':2,'MD':5,'FW':3})
+#     df_opt['squad_min_play']=df_opt['Position'].replace({'DF':3,'GK':1,'MD':2,'FW':1})
+#     df_opt['squad_max_play']=df_opt['Position'].replace({'DF':5,'GK':1,'MD':5,'FW':3})
+#     df_opt_1=latest_df.loc[:,['full_name','team','Price']].drop_duplicates(subset=['full_name']).rename(columns={'Price':'now_cost','full_name':'name'})
+#     df_opt_2=pd.merge(df_opt,df_opt_1,on='name', how='outer').reset_index().rename(columns={'index':'id','average':'30_Pts'})
+#     # st.write('test',df_opt)
+#     # st.write('test',df_opt_1.head())
+#     st.write('test', df_opt_2.head(1))
+#     model = so.Model(name='single_period')
+#     # players = df_opt_2['name'].to_list() # should be using ID here....
+#     players = df_opt_2['id'].to_list() # should be using ID here....
+#     element_types = df_opt_2['element_type'].to_list()
+#     teams = df_opt_2['team'].to_list()
+#     squad = model.add_variables(players, name='squad', vartype=so.binary)
+#     lineup = model.add_variables(players, name='lineup', vartype=so.binary)
+#     captain = model.add_variables(players, name='captain', vartype=so.binary)
+#     vicecap = model.add_variables(players, name='vicecap', vartype=so.binary)
+#     squad_count = so.expr_sum(squad[p] for p in players)
+#     model.add_constraint(squad_count == 15, name='squad_count')
+#     model.add_constraint(so.expr_sum(lineup[p] for p in players) == 11, name='lineup_count')
+#     model.add_constraint(so.expr_sum(captain[p] for p in players) == 1, name='captain_count')
+#     model.add_constraint(so.expr_sum(vicecap[p] for p in players) == 1, name='vicecap_count')
+#     model.add_constraints((lineup[p] <= squad[p] for p in players), name='lineup_squad_rel')
+#     model.add_constraints((captain[p] <= lineup[p] for p in players), name='captain_lineup_rel')
+#     model.add_constraints((vicecap[p] <= lineup[p] for p in players), name='vicecap_lineup_rel')
+#     model.add_constraints((captain[p] + vicecap[p] <= 1 for p in players), name='cap_vc_rel')
+#     lineup_type_count = {t: so.expr_sum(lineup[p] for p in players if df_opt_2.loc[p, 'element_type'] == t) for t in element_types}
+#     squad_type_count = {t: so.expr_sum(squad[p] for p in players if df_opt_2.loc[p, 'element_type'] == t) for t in element_types}
+#     model.add_constraints((lineup_type_count[t] == [df_opt_2.loc[t, 'squad_min_play'], df_opt_2.loc[t, 'squad_max_play']] for t in element_types), name='valid_formation')
+#     model.add_constraints((squad_type_count[t] == df_opt_2.loc[t, 'squad_select'] for t in element_types), name='valid_squad')
+#     budget=100
+#     price = so.expr_sum(df_opt_2.loc[p, 'now_cost'] / 10 * squad[p] for p in players)
+#     model.add_constraint(price <= budget, name='budget_limit')
+#     model.add_constraints((so.expr_sum(squad[p] for p in players if df_opt_2.loc[p, 'name'] == t) <= 3 for t in teams), name='team_limit')
+#     next_gw=30
+#     total_points = so.expr_sum(df_opt_2.loc[p, f'{next_gw}_Pts'] * (lineup[p] + captain[p] + 0.1 * vicecap[p]) for p in players)
+#     model.set_objective(-total_points, sense='N', name='total_xp')
+#     model.export_mps('single_period.mps')
+#     os.system('cbc single_period.mps solve solu solution_sp.txt')
+#     # st.write({command})
+#     # !{command}
+#     for v in model.get_variables():
+#         v.set_value(0)
+#     with open('solution_sp.txt', 'r') as f:
+#         for line in f:
+#             if 'objective value' in line:
+#                 continue
+#             words = line.split()
+#             var = model.get_variable(words[1])
+#             var.set_value(float(words[2]))
 
-    picks = []
-    for p in players:
-        if squad[p].get_value() > 0.5:
-            lp = df_opt_2.loc[p]
-            is_captain = 1 if captain[p].get_value() > 0.5 else 0
-            is_lineup = 1 if lineup[p].get_value() > 0.5 else 0
-            is_vice = 1 if vicecap[p].get_value() > 0.5 else 0
-            position = df_opt_2.loc[lp['element_type'], 'Position']
-            picks.append([
-                lp['web_name'], position, lp['element_type'], lp['name'], lp['now_cost']/10, round(lp[f'{next_gw}_Pts'], 2), is_lineup, is_captain, is_vice
-            ])
+#     picks = []
+#     for p in players:
+#         if squad[p].get_value() > 0.5:
+#             lp = df_opt_2.loc[p]
+#             is_captain = 1 if captain[p].get_value() > 0.5 else 0
+#             is_lineup = 1 if lineup[p].get_value() > 0.5 else 0
+#             is_vice = 1 if vicecap[p].get_value() > 0.5 else 0
+#             position = df_opt_2.loc[lp['element_type'], 'Position']
+#             picks.append([
+#                 lp['web_name'], position, lp['element_type'], lp['name'], lp['now_cost']/10, round(lp[f'{next_gw}_Pts'], 2), is_lineup, is_captain, is_vice
+#             ])
 
-    picks_df = pd.DataFrame(picks, columns=['name', 'pos', 'type', 'team', 'price', 'xP', 'lineup', 'captain', 'vicecaptain']).sort_values(by=['lineup', 'type', 'xP'], ascending=[False, True, True])
-    st.write(picks_df)
+#     picks_df = pd.DataFrame(picks, columns=['name', 'pos', 'type', 'team', 'price', 'xP', 'lineup', 'captain', 'vicecaptain']).sort_values(by=['lineup', 'type', 'xP'], ascending=[False, True, True])
+#     # st.write(picks_df)
