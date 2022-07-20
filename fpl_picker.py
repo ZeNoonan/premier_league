@@ -400,7 +400,8 @@ with st.expander('To run the GW analysis'):
                 x = x[x['games_total']>38]
                 # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
                 x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
-                x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
+                x['ppg_19_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+                # x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
                 return x
 
             def value_rank(x):
@@ -457,7 +458,7 @@ with st.expander('To run the GW analysis'):
         df1 = pd.concat(raw_data, ignore_index=True)
         future_week=20
 
-        # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_historical.csv')
+        df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_historical.csv')
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value_test_0.csv')
         
@@ -629,7 +630,8 @@ with st.expander('GW Detail with Latest Transfers'):
         x = x[x['games_total']>38]
         # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
         x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
-        x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
+        x['ppg_19_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+        # x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
         return x
 
     def value_rank(x):
