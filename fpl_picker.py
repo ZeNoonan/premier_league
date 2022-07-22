@@ -400,7 +400,7 @@ with st.expander('To run the GW analysis'):
                 x = x[x['games_total']>38]
                 # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
                 x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
-                x['ppg_19_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+                x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
                 # x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
                 return x
 
@@ -630,7 +630,7 @@ with st.expander('GW Detail with Latest Transfers'):
         x = x[x['games_total']>38]
         # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
         x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
-        x['ppg_19_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+        x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
         # x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
         return x
 
