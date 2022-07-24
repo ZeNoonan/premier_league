@@ -20,8 +20,9 @@ home_point_advantage=.2
 home_adv_parameter = .3
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
+    # dfa=pd.read_html('https://fbref.com/en/comps/20/11593/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
     
     @st.cache
@@ -32,8 +33,9 @@ with st.expander('df'):
     def read_csv_data_date(file):
         return pd.read_csv(file,parse_dates=['Date'])
 
-    df=read_csv_data_date('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
-
+    # df=read_csv_data_date('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv')
+    df=read_csv_data_date('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
+    st.write('check for xG', df)
 
     df=df.dropna(subset=['Wk'])
     # df['Home']=df['Home'].astype(str).str.lower()
@@ -48,8 +50,12 @@ with st.expander('df'):
 
     # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
-    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_odds.xlsx',parse_dates=['Date'])
-    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_bundesliga.xlsx',parse_dates=['Date'])
+    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_odds.xlsx',parse_dates=['Date'])
+    # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_bundesliga.xlsx',parse_dates=['Date'])
+    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_odds_2022_2023.xlsx',parse_dates=['Date'])
+    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_bundesliga_2021_2022.xlsx',parse_dates=['Date'])
+    
+    
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_dummy.xlsx',parse_dates=['Date'])
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_dummy.xlsx',parse_dates=['Date'])
 
@@ -65,6 +71,7 @@ with st.expander('df'):
     # st.write('Date type in df',df['Date'].dtype)
     merged_df = pd.merge(df,odds,on=['Date','Home','Away'],how='outer').drop(['Day_y','Wk_x'],axis=1)\
         .rename(columns={'xG_x':'xG','xG.1_x':'xG.1','Score_x':'Score','Day_x':'Day','Date_x':'Date','Home':'Home Team','Away':'Away Team','Wk_y':'Week'})
+    st.write('check for xG', merged_df)
     # st.write('merged df missing?',merged_df[merged_df['Spread'].isna()])
     # st.write('DUPLICATES IN HERE?? merged df',merged_df)
     # https://stackoverflow.com/questions/35552874/get-first-letter-of-a-string-from-column
@@ -118,7 +125,8 @@ with st.expander('df'):
     # st.write('test spread',spread)
 
 
-    team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_odds.xlsx', sheet_name='Sheet2')
+    # team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_odds_2021_2022.xlsx', sheet_name='Sheet2')
+    team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_odds_2022_2023.xlsx', sheet_name='Sheet2')
     # st.write(team_names_id)
     team_names_id=team_names_id.rename(columns={'team':'Home Team'})
     # st.write('this is spread before merge', spread)
