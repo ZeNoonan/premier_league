@@ -22,9 +22,12 @@ placeholder_1=st.empty()
 placeholder_2=st.empty()
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')
-    df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv',parse_dates=['Date'])
+    # dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/12/11573/schedule/2022-2023-La-Liga-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_2022_2023.csv')
+    # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv',parse_dates=['Date'])
+    df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_2022_2023.csv',parse_dates=['Date'])
     
     df=df.dropna(subset=['Wk'])
     # df['Home']=df['Home'].astype(str).str.lower()
@@ -39,8 +42,10 @@ with st.expander('df'):
 
     # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
-    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds.xlsx',parse_dates=['Date'])
-    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga.xlsx',parse_dates=['Date'])
+    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2021_2022.xlsx',parse_dates=['Date'])
+    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.xlsx',parse_dates=['Date'])
+    # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2020_2021.xlsx',parse_dates=['Date'])
+    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2021_2022.xlsx',parse_dates=['Date'])
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_dummy.xlsx',parse_dates=['Date'])
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_dummy.xlsx',parse_dates=['Date'])
 
@@ -109,7 +114,8 @@ with st.expander('df'):
     # st.write('test spread',spread)
 
 
-    team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds.xlsx', sheet_name='Sheet2')
+    # team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds.xlsx', sheet_name='Sheet2')
+    team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.xlsx', sheet_name='Sheet2')
     # st.write(team_names_id)
     team_names_id=team_names_id.rename(columns={'team':'Home Team'})
     # st.write('this is spread before merge', spread)
