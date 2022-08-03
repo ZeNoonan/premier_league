@@ -20,9 +20,9 @@ home_adv_parameter = .3
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv')
-    df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a.csv',parse_dates=['Date'])
+    # dfa=pd.read_html('https://fbref.com/en/comps/11/11611/schedule/2022-2023-Serie-A-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a_2022_2023.csv')
+    df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a_2022_2023.csv',parse_dates=['Date'])
     
     df=df.dropna(subset=['Wk'])
     # df['Home']=df['Home'].astype(str).str.lower()
@@ -37,8 +37,10 @@ with st.expander('df'):
 
     # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
-    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/serie_a_odds.xlsx',parse_dates=['Date'])
-    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_serie_a.xlsx',parse_dates=['Date'])
+    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/serie_a_odds.xlsx',parse_dates=['Date'])
+    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/serie_a_odds_2022_2023.xlsx',parse_dates=['Date'])
+    # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_serie_a.xlsx',parse_dates=['Date'])
+    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_serie_a_2021_2022.xlsx',parse_dates=['Date'])
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_dummy.xlsx',parse_dates=['Date'])
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_dummy.xlsx',parse_dates=['Date'])
 
@@ -110,7 +112,7 @@ with st.expander('df'):
     # st.write('test spread',spread)
 
 
-    team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/serie_a_odds.xlsx', sheet_name='Sheet2')
+    team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/serie_a_odds_2022_2023.xlsx', sheet_name='Sheet2')
     # st.write(team_names_id)
     team_names_id=team_names_id.rename(columns={'team':'Home Team'})
     # st.write('this is spread before merge', spread)
