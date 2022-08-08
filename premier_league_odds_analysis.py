@@ -480,9 +480,9 @@ with placeholder_2.expander('Betting Slip Matches'):
         betting_matches['away_cover_sign']+betting_matches['power_pick']+betting_matches['momentum_pick']
 
 
-        betting_matches['bet_on'] = np.where(betting_matches['total_factor']>2,betting_matches['Home Team'],np.where(
-            betting_matches['total_factor']<-2,betting_matches['Away Team'],''))
-        betting_matches['bet_sign'] = (np.where(betting_matches['total_factor']>2,1,np.where(betting_matches['total_factor']<-2,-1,0)))
+        betting_matches['bet_on'] = np.where(betting_matches['total_factor']>3,betting_matches['Home Team'],np.where(
+            betting_matches['total_factor']<-3,betting_matches['Away Team'],''))
+        betting_matches['bet_sign'] = (np.where(betting_matches['total_factor']>3,1,np.where(betting_matches['total_factor']<-3,-1,0)))
         
         betting_matches['bet_sign'] = betting_matches['bet_sign'].astype(float)
         betting_matches['home_cover'] = betting_matches['home_cover'].astype(float)
@@ -507,9 +507,9 @@ with placeholder_2.expander('Betting Slip Matches'):
     presentation_betting_matches=betting_matches.copy()
 
     # https://towardsdatascience.com/7-reasons-why-you-should-use-the-streamlit-aggrid-component-2d9a2b6e32f0
-    grid_height = st.number_input("Grid height", min_value=400, value=550, step=100)
+    grid_height = st.number_input("Grid height", min_value=400, value=1550, step=100)
     gb = GridOptionsBuilder.from_dataframe(presentation_betting_matches)
-    gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
+    gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2, aggFunc='sum')
     gb.configure_column("home_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
     gb.configure_column("away_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
     gb.configure_column("Date", type=["dateColumnFilter","customDateTimeFormat"], custom_format_string='dd-MM-yyyy', pivot=True)
