@@ -17,15 +17,20 @@ future_gameweek=39
 current_week=38
 current_year=2022
 
+future_gameweek=2
+current_week=1
+current_year=2023
+
 with st.expander('Data Prep'):
 
+    file_location_2023='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2023.csv'
     file_location_2022='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2022.csv'
     file_location_2021='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2021.csv'
     file_location_2020='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2020.csv'
     file_location_2019='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2019.csv'
     file_location_2018='C:/Users/Darragh/Documents/Python/premier_league/raw_data_2018.csv'
     
-
+    url2023 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2022-23/players_raw.csv'
     url2022 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2021-22/players_raw.csv'
     url2021 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2020-21/players_raw.csv'
     url2020 = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2019-20/players_raw.csv'
@@ -65,6 +70,7 @@ with st.expander('Data Prep'):
     'value','week','year']
     col_selection_week_2020=['bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
     'value','week','year','round','fixture']
+    url_csv_2023=read_data(url2023,col_selection_url)
     url_csv_2022=read_data(url2022,col_selection_url)
     url_csv_2021=read_data(url2021,col_selection_url)
     url_csv_2020=read_data(url2020,col_selection_url_2020).copy()
@@ -78,6 +84,7 @@ with st.expander('Data Prep'):
 
     # url_csv_2020=data_2020_team_names((read_data(url2020,col_selection_url_2020).copy()))
     # st.write('master data 2020',url_csv_2020.head())
+    df_week_data_raw_2023 = read_data(file_location_2023,col_selection_week)
     df_week_data_raw_2022 = read_data(file_location_2022,col_selection_week)
     df_week_data_raw_2021 = read_data(file_location_2021,col_selection_week)
     # st.write('2020 raw data weekly',pd.read_csv(file_location_2020).head())
@@ -114,6 +121,7 @@ with st.expander('Data Prep'):
         gw_28_blank_1 = clean_blank_gw(url_pick2020,2,15,27)
         return pd.concat([url_pick2020,gw_18_blank,gw_28_blank,gw_28_blank_1])    
 
+    data_2023 = (( (prep_base_data(url_csv_2023, df_week_data_raw_2023))))
     data_2022 = (( (prep_base_data(url_csv_2022, df_week_data_raw_2022))))
     data_2021 = (( (prep_base_data(url_csv_2021, df_week_data_raw_2021))))
     data_2020 = (( (prep_base_data(url_csv_2020, df_week_data_raw_2020)))).copy()
@@ -129,7 +137,12 @@ with st.expander('Data Prep'):
     def combine_dataframes_historical(a,b,c):
         return pd.concat ([a,b,c], axis=0,sort = True)
 
-    full_df = combine_dataframes(data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
+    @st.cache(suppress_st_warning=True)
+    def combine_dataframes_new(a,b,c,d,e,f):
+        return pd.concat ([a,b,c,d,e,f], axis=0,sort = True)
+
+    # full_df = combine_dataframes(data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
+    full_df = combine_dataframes_new(data_2023,data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
     # full_df = combine_dataframes_historical(data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
 
     # st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
@@ -143,6 +156,17 @@ with st.expander('Data Prep'):
         df['games_2022'] = np.where((df['year'] == current_year), df['Game_1'], 0)
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
         return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
+
+
+
+    full_df.loc [ (full_df['full_name']=='heung-min_son'), 'full_name' ] = 'son_heung-min'
+    full_df.loc [ (full_df['full_name']=='benjamin_chilwell'), 'full_name' ] = 'ben_chilwell'
+    full_df.loc [ (full_df['full_name']=='gabriel_magalhães'), 'full_name' ] = 'gabriel_dos santos magalhães'
+    full_df.loc [ (full_df['full_name']=='bruno miguel_borges fernandes'), 'full_name' ] = 'bruno_borges fernandes'
+    full_df.loc [ (full_df['full_name']=='joão pedro cavaco_cancelo'), 'full_name' ] = 'joão_cancelo'
+    full_df.loc [ (full_df['full_name']=='gabriel fernando_de jesus'), 'full_name' ] = 'gabriel_fernando de jesus'
+    full_df.loc [ (full_df['full_name']=='diogo_jota'), 'full_name' ] = 'diogo_teixeira da silva'
+
 
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
@@ -178,8 +202,21 @@ with st.expander('Data Prep'):
         df['games_total'] = df.groupby (['full_name'])['Game_1'].transform('sum')
         return df
 
-    full_df=column_calcs_2(full_df).drop(['value','week_points','first_name','second_name'],axis=1)
 
+    # full_df.loc [ (full_df['full_name']=='son_heung-min'), 'full_name' ] = 'heung-min_son'
+    # full_df.loc [ (full_df['full_name']=='benjamin_chilwell'), 'full_name' ] = 'ben_chilwell'
+    # full_df.loc [ (full_df['full_name']=='gabriel_dos santos magalhães'), 'full_name' ] = 'gabriel_magalhães'
+    # full_df.loc [ (full_df['full_name']=='bruno_borges fernandes'), 'full_name' ] = 'bruno miguel_borges fernandes'
+    # full_df.loc [ (full_df['full_name']=='joão_cancelo'), 'full_name' ] = 'joão pedro cavaco_cancelo'
+    # full_df.loc [ (full_df['full_name']=='gabriel_fernando de jesus'), 'full_name' ] = 'gabriel fernando_de jesus'
+    # full_df.loc [ (full_df['full_name']=='diogo_teixeira da silva'), 'full_name' ] = 'diogo_jota'
+
+
+
+    full_df=full_df.drop(['first_name','second_name'],axis=1).reset_index().drop('index',axis=1)
+    # st.write('check this full df chillwell row 213',full_df[full_df['full_name'].str.contains('chilwell')])
+    full_df=column_calcs_2(full_df).drop(['value','week_points'],axis=1)
+    # st.write('check this full df chillwell 215',full_df[full_df['full_name'].str.contains('chilwell')])
     # st.write('check this full df',full_df[full_df['full_name'].str.contains('kane')])
 
     # cols_to_move=['full_name','Position','Price','team','week','year','minutes','Clean_Pts','last_76_ppg','last_38_ppg','games_total',
@@ -300,8 +337,26 @@ with st.expander('Player Stats Latest'):
 with st.expander('To run the GW analysis'):
     # st.write('this is solanke df',full_df.loc[ (full_df['full_name']==('solanke'))  ])
     full_df.loc[ ((full_df['full_name']==('aleksandar_mitrović')) & (full_df['year']==2021)),'year' ] = 2022
-    # st.write('this is mitro df',full_df.loc[ (full_df['full_name']==('aleksandar_mitrović')) & (full_df['year']==2021) ])
-    # st.write('this is mitro df',full_df.loc[ (full_df['full_name']==('aleksandar_mitrović'))  ])
+
+
+    # full_df.loc [ (full_df['full_name']=='son_heung-min'), 'full_name' ] = 'heung-min_son'
+    
+    # # full_df.loc [ (full_df['full_name']=='ben_chilwell'), 'full_name' ] = 'benjamin_chilwell'
+    # full_df.loc [ (full_df['full_name']=='benjamin_chilwell'), 'full_name' ] = 'ben_chilwell'
+
+    # full_df.loc [ (full_df['full_name']=='gabriel_dos santos magalhães'), 'full_name' ] = 'gabriel_magalhães'
+    # full_df.loc [ (full_df['full_name']=='bruno_borges fernandes'), 'full_name' ] = 'bruno miguel_borges fernandes'
+    # full_df.loc [ (full_df['full_name']=='joão_cancelo'), 'full_name' ] = 'joão pedro cavaco_cancelo'
+    # full_df.loc [ (full_df['full_name']=='gabriel_fernando de jesus'), 'full_name' ] = 'gabriel fernando_de jesus'
+    # full_df.loc [ (full_df['full_name']=='diogo_teixeira da silva'), 'full_name' ] = 'diogo_jota'
+
+
+    # st.write('this is chilwell df',full_df.loc[ (full_df['full_name'].('aleksandar_mitrović')) & (full_df['year']==2021) ])
+    # test_chil=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_week_1.csv',col_selection=['full_name','transfers_balance'])
+    
+    # st.write('whwere is chil', test_chil[test_chil['full_name'].str.contains('chilw')])
+    
+    # st.write('this is chilwell df',full_df.loc[ (full_df['full_name'].str.contains('chilwell'))  ])
     # test_df_mitro=full_df.set_index('full_name')
     # st.write(test_df_mitro.loc[''])
     def run_gw_analysis():
@@ -320,7 +375,7 @@ with st.expander('To run the GW analysis'):
             # st.write('this is mitro df problem is here full df not picking up mitro',full_df.loc[ (full_df['full_name']==('aleksandar_mitrović'))  ])
             
             latest_df = find_latest_player_stats(full_df)
-
+            # st.write('this is chilwell df inside function',latest_df.loc[ (latest_df['full_name'].str.contains('chilwell'))  ])
             # st.write('this is mitro df problem??',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
             # st.write('check this latest df', latest_df[latest_df['full_name'].str.contains('bowen')])
             latest_df=latest_df.sort_values(by=['last_76_ppg'],ascending=False)
@@ -349,12 +404,14 @@ with st.expander('To run the GW analysis'):
 
             # st.write('this is mitro df',latest_df[ (latest_df['games_total']>38) & (latest_df['full_name']==('aleksandar_mitrović')) ] )
             # st.write('this is mitro df problem??',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
+            # st.write('this is chilwell df inside function',latest_df.loc[ (latest_df['full_name'].str.contains('chilwell'))  ])
             latest_df = ranked_players(latest_df)
+            # st.write('this is chilwell df inside function',latest_df.loc[ (latest_df['full_name'].str.contains('chilwell'))  ])
             # st.write('this is mitro df problem??',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
             # st.write('this is mitro df',latest_df[ (latest_df['games_total']>38) & (latest_df['full_name']==('aleksandar_mitrović')) ] )
             latest_df = value_rank(latest_df)
             # st.write('this is mitro df',latest_df.loc[ (latest_df['full_name']==('aleksandar_mitrović'))  ])
-
+            # st.write('this is chilwell df inside function',latest_df.loc[ (latest_df['full_name'].str.contains('chilwell'))  ])
             weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_week_1.csv',col_selection=['full_name','transfers_balance'])
             def merge_latest_transfers(x):
                 return pd.merge(x,weekly_transfers_in,on=['full_name'],how='right')
@@ -375,6 +432,7 @@ with st.expander('To run the GW analysis'):
                 return x
 
             latest_df = weekly_transfers_historical(latest_df)
+            # st.write('this is chilwell df inside function',latest_df.loc[ (latest_df['full_name'].str.contains('chilwell'))  ])
             latest_df = rank_calc(latest_df)
             latest_df = rank_total_calc(latest_df)
 
@@ -391,7 +449,8 @@ with st.expander('To run the GW analysis'):
 
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_historical.csv')
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
-        df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_week_1.csv')
+        # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_week_1.csv')
+        df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_2023.csv')
         
         return df1
     run_gw_analysis()
@@ -404,10 +463,10 @@ with st.expander('Analyse GW data Player Level'):
 
     # data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
     # data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_historical.csv')
-    data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_week_1.csv')
-    
+    data=load_data('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_2023.csv')
+    # st.write('THIS IS THE DATA, what week number', data.head())
     data_for_processing_current_transfers=data.copy()
-    st.write('this is mitro df',data_for_processing_current_transfers[data_for_processing_current_transfers['full_name'].str.contains('mitro')])
+    # st.write('this is chilwell ok?? df',data_for_processing_current_transfers[data_for_processing_current_transfers['full_name'].str.contains('chilwe')])
     # st.write(data)
     # st.write(data[data['full_name'].str.contains('bowen')])
     # player_detail_data=data.copy().drop('Unnamed: 0',axis=1)
@@ -426,10 +485,13 @@ with st.expander('Analyse GW data Player Level'):
     # st.write(data)
     
 with st.expander('Graph GW data'):
-    data=data[data['games_2022_rolling']>1]
+    # st.write('data ok beg', data)
+    data=data[data['games_2022_rolling']>0]
     # st.write(data[data['full_name'].str.contains('bowen')])
     data=data.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
+    # st.write('data ok', data)
     stdc_df=data.loc[:,['Week','Team','cover','Position']].copy()
+    # st.write('check this for week', stdc_df)
     merge_historical_stdc_df=stdc_df.copy()
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
     
@@ -537,13 +599,17 @@ with st.expander('GW Detail with Latest Transfers'):
     weekly_transfers_in=read_data('C:/Users/Darragh/Documents/Python/premier_league/week_transfers_in_week_1.csv',col_selection=['full_name','transfers_balance','Price']).copy()
     
     # st.write('latest', weekly_transfers_in[weekly_transfers_in['full_name'].str.contains('mitro')])
-    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='son_heung-min'), 'full_name' ] = 'heung-min_son'
-    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='ben_chilwell'), 'full_name' ] = 'benjamin_chilwell'
-    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='gabriel_dos santos magalhães'), 'full_name' ] = 'gabriel_magalhães'
-    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='bruno_borges fernandes'), 'full_name' ] = 'bruno miguel_borges fernandes'
-    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='joão_cancelo'), 'full_name' ] = 'joão pedro cavaco_cancelo'
-    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='gabriel_fernando de jesus'), 'full_name' ] = 'gabriel fernando_de jesus'
-    weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='diogo_teixeira da silva'), 'full_name' ] = 'diogo_jota'
+    
+    
+    # weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='son_heung-min'), 'full_name' ] = 'heung-min_son'
+    # weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='ben_chilwell'), 'full_name' ] = 'benjamin_chilwell'
+    # weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='gabriel_dos santos magalhães'), 'full_name' ] = 'gabriel_magalhães'
+    # weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='bruno_borges fernandes'), 'full_name' ] = 'bruno miguel_borges fernandes'
+    # weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='joão_cancelo'), 'full_name' ] = 'joão pedro cavaco_cancelo'
+    # weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='gabriel_fernando de jesus'), 'full_name' ] = 'gabriel fernando_de jesus'
+    # weekly_transfers_in.loc [ (weekly_transfers_in['full_name']=='diogo_teixeira da silva'), 'full_name' ] = 'diogo_jota'
+
+
     # weekly_transfers_in=weekly_transfers_in.set_index('full_name')
     # weekly_transfers_in.loc["son_heung-min",'full_name']="heung-min_son"
     # st.write(weekly_transfers_in['full_name']=="son_heung-min")
@@ -641,6 +707,8 @@ with st.expander('GW Detail with Latest Transfers'):
 with st.expander('GW Graph with Latest Transfers'):    
     current_data_week=current_data_week.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     current_data_week_df=current_data_week.loc[:,['Week','Team','cover','Position']].copy()
+    # st.write('should gw 1', merge_historical_stdc_df)
+    # st.write('should be gw2', current_data_week_df)
     stdc_df=pd.concat([merge_historical_stdc_df,current_data_week_df])
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
     my_players_data=stdc_df.copy()
