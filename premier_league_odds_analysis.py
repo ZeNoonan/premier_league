@@ -40,28 +40,19 @@ github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-    # dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
+    dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
 
     # st.download_button(label="Download data as CSV",data=dfa[0].to_csv().encode('utf-8'),file_name='large_df.csv',mime='text/csv')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
     df=pd.read_csv(github_fbref_scores,parse_dates=['Date'])
 
     df=df.dropna(subset=['Wk'])
-    # st.write('this is df', df)
-    def convert_df(df):
-     # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv().encode('utf-8')
-    # csv = convert_df(df)
-    # st.download_button(label="Download data as CSV",data=csv,file_name='df.csv',mime='text/csv',key='scores')
-
-
-    # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.xlsx',parse_dates=['Date']) # 2022
     odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.xlsx',parse_dates=['Date']) # 2023
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year.xlsx',parse_dates=['Date'])
 
-    # odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds.csv')
+    odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.csv')
 
     # prior_data.to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds.csv')
     # odds = pd.read_csv(github_current_odds,parse_dates=['Date'])
@@ -72,14 +63,16 @@ with st.expander('df'):
         current_plus_prior = pd.concat([x,y],axis=0,ignore_index=True)
         return current_plus_prior
 
-    odds=concat_current_prior(odds,prior_data).drop(['xG','Score','xG.1'],axis=1)
-    # st.write('odds duplicates???????', odds)
+    odds=concat_current_prior(odds,prior_data).drop(['xG','Score','xG.1'],axis=1).rename(columns={'Home Team':'Home','Away Team':'Away'})
+    # odds['Notes']=odds['Notes'].astype(str)
+    # st.write('odds before merge', odds)
     # st.write('df',df)
-    # st.write('Date type in odds',odds['Date'].dtype)
-    # st.write('Date type in df',df['Date'].dtype)
-    # st.write('this is df', df)
+    # st.write('Date type in odds',odds['Notes'].dtype)
+    # st.write('Date type in df',df['Notes'].dtype)
+    # st.write('this is df before merge', df)
 
-    merged_df = pd.merge(df,odds,on=['Date','Home','Away','Notes'],how='outer').drop(['Day_y','Wk_x'],axis=1)\
+    # why was i merging on Notes before???
+    merged_df = pd.merge(df,odds,on=['Date','Home','Away'],how='outer').drop(['Day_y','Wk_x'],axis=1)\
         .rename(columns={'xG_x':'xG','xG.1_x':'xG.1','Score_x':'Score','Day_x':'Day','Date_x':'Date','Home':'Home Team','Away':'Away Team','Wk_y':'Week'}) # 2023
     # merged_df = pd.merge(df,odds,on=['Date','Home','Away'],how='outer').drop(['Day_y','Wk_x'],axis=1)\
     #     .rename(columns={'xG_x':'xG','xG.1_x':'xG.1','Score_x':'Score','Day_x':'Day','Date_x':'Date','Home':'Home Team','Away':'Away Team','Wk_y':'Week'}) #2022
@@ -492,7 +485,7 @@ with placeholder_2.expander('Betting Slip Matches'):
         betting_matches['bet_sign_all'] = (np.where(betting_matches['total_factor']>0,1,np.where(betting_matches['total_factor']<-0,-1,0)))
         betting_matches['result_all']=betting_matches['home_cover_result'] * betting_matches['bet_sign_all']
         # st.write('testing sum of betting all result',betting_matches['result_all'].sum())
-        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','home_cover_result','result','Spread','Opening Spread','momentum_pick',
+        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','result','Spread','Opening Spread','momentum_pick',
         'Home Points','Away Points','home_cover','away_cover']
         cols = cols_to_move + [col for col in betting_matches if col not in cols_to_move]
         betting_matches=betting_matches[cols]
