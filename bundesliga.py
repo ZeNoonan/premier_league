@@ -21,8 +21,8 @@ home_adv_parameter = .3
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
-    # dfa=pd.read_html('https://fbref.com/en/comps/20/11593/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/20/11593/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
     
     @st.cache
@@ -447,15 +447,34 @@ with st.expander('Power Ranking by Week'):
     st.altair_chart(chart_power + text,use_container_width=True)
 # st.write('updated df', updated_df)
 
+
+with st.expander('Momentum Factor'):
+    
+    updated_df_with_momentum=updated_df.loc[:,['Week','Date','Home ID','Home Team','Away ID', 'Away Team','Spread','Home Points','Away Points',
+        'home_power','away_power','home_cover','away_cover','home_turnover_sign','away_turnover_sign',
+        'home_cover_sign','away_cover_sign','power_pick','home_cover_result','Opening Spread']]
+    # st.write('update', updated_df_with_momentum)
+    updated_df_with_momentum['momentum_pick']=np.where(updated_df_with_momentum['Spread']==updated_df_with_momentum['Opening Spread'],0,np.where(
+        updated_df_with_momentum['Spread']<updated_df_with_momentum['Opening Spread'],1,-1))
+
+
 with placeholder_2.expander('Betting Slip Matches'):
     def run_analysis(updated_df):
-        betting_matches=updated_df.loc[:,['Week','Date','Home ID','Home Team','Away ID', 'Away Team','Spread','Home Points','Away Points',
+        # betting_matches=updated_df.loc[:,['Week','Date','Home ID','Home Team','Away ID', 'Away Team','Spread','Home Points','Away Points',
+        # 'home_power','away_power','home_cover','away_cover','home_turnover_sign','away_turnover_sign',
+        # 'home_cover_sign','away_cover_sign','power_pick','home_cover_result']]
+
+        betting_matches=updated_df_with_momentum.loc[:,['Week','Date','Home ID','Home Team','Away ID', 'Away Team','Spread','Home Points','Away Points',
         'home_power','away_power','home_cover','away_cover','home_turnover_sign','away_turnover_sign',
-        'home_cover_sign','away_cover_sign','power_pick','home_cover_result']]
+        'home_cover_sign','away_cover_sign','power_pick','home_cover_result','momentum_pick','Opening Spread']]
+
         betting_matches['total_factor']=betting_matches['home_turnover_sign']+betting_matches['away_turnover_sign']+betting_matches['home_cover_sign']+\
-        betting_matches['away_cover_sign']+betting_matches['power_pick']
-        betting_matches['bet_on'] = np.where(betting_matches['total_factor']>2,betting_matches['Home Team'],np.where(betting_matches['total_factor']<-2,betting_matches['Away Team'],''))
-        betting_matches['bet_sign'] = (np.where(betting_matches['total_factor']>2,1,np.where(betting_matches['total_factor']<-2,-1,0)))
+        betting_matches['away_cover_sign']+betting_matches['power_pick']+betting_matches['momentum_pick']
+        
+        betting_matches['bet_on'] = np.where(betting_matches['total_factor']>3,betting_matches['Home Team'],np.where(betting_matches['total_factor']<-3,
+        betting_matches['Away Team'],''))
+        
+        betting_matches['bet_sign'] = (np.where(betting_matches['total_factor']>3,1,np.where(betting_matches['total_factor']<-3,-1,0)))
         betting_matches['bet_sign'] = betting_matches['bet_sign'].astype(float)
         betting_matches['home_cover'] = betting_matches['home_cover'].astype(float)
         betting_matches['result']=betting_matches['home_cover_result'] * betting_matches['bet_sign']
@@ -464,8 +483,8 @@ with placeholder_2.expander('Betting Slip Matches'):
         betting_matches['bet_sign_all'] = (np.where(betting_matches['total_factor']>0,1,np.where(betting_matches['total_factor']<-0,-1,0)))
         betting_matches['result_all']=betting_matches['home_cover_result'] * betting_matches['bet_sign_all']
         # st.write('testing sum of betting all result',betting_matches['result_all'].sum())
-        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','home_cover_result','result','Spread','Home Points','Away Points',
-        'home_cover','away_cover']
+        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','result','Spread','Opening Spread','momentum_pick',
+        'Home Points','Away Points','home_cover','away_cover','home_cover_result']
         cols = cols_to_move + [col for col in betting_matches if col not in cols_to_move]
         betting_matches=betting_matches[cols]
         betting_matches=betting_matches.sort_values(['Week','Date'],ascending=[True,True])
@@ -481,7 +500,8 @@ with placeholder_2.expander('Betting Slip Matches'):
     # https://towardsdatascience.com/7-reasons-why-you-should-use-the-streamlit-aggrid-component-2d9a2b6e32f0
     grid_height = st.number_input("Grid height", min_value=400, value=550, step=100)
     gb = GridOptionsBuilder.from_dataframe(presentation_betting_matches)
-    gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
+    gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2, aggFunc='sum')
+    gb.configure_column("Opening Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2, aggFunc='sum')
     gb.configure_column("home_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
     gb.configure_column("away_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
     gb.configure_column("Date", type=["dateColumnFilter","customDateTimeFormat"], custom_format_string='dd-MM-yyyy', pivot=True)
@@ -504,6 +524,7 @@ with placeholder_2.expander('Betting Slip Matches'):
     """)
     # # https://github.com/PablocFonseca/streamlit-aggrid/blob/main/st_aggrid/grid_options_builder.py
     gb.configure_column(field="Spread", cellStyle=test_cellsytle_jscode)
+    gb.configure_column(field="Opening Spread", cellStyle=test_cellsytle_jscode)
     gb.configure_column("home_power", cellStyle=test_cellsytle_jscode)
     gb.configure_column("away_power", cellStyle=test_cellsytle_jscode)
 
