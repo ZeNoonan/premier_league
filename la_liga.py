@@ -44,6 +44,7 @@ with st.expander('df'):
 
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2021_2022.xlsx',parse_dates=['Date'])
     odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.xlsx',parse_dates=['Date'])
+    odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.csv')
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2020_2021.xlsx',parse_dates=['Date'])
     prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2021_2022.xlsx',parse_dates=['Date'])
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_dummy.xlsx',parse_dates=['Date'])
