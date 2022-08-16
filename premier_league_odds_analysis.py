@@ -20,8 +20,21 @@ finished_week=38
 home_point_advantage=0.2
 home_adv_parameter = .3
 
+season_picker = st.selectbox("Select a season to run",('season_2022','season_2021'),index=0)
 placeholder_1=st.empty()
 placeholder_2=st.empty()
+
+season_list={'season_2022': {
+    "odds_file": "C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.csv",
+    "scores_file": "C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv",
+    "team_id": "C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2022_2023.csv",
+    "prior_year_file": "C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2021_2022.csv"},
+'season_2021' : {
+    "odds_file": "C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.csv",
+    "scores_file": "C:/Users/Darragh/Documents/Python/premier_league/scores_2021_2022.csv",
+    "team_id": "C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2021_2022.csv",
+    "prior_year_file": 'C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2020_2021.csv'}}
+
 
 # github_fbref_scores='C:/Users/Darragh/Documents/Python/premier_league/scores_2021_2022.csv' # 2022
 github_fbref_scores='C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv' # 2023
@@ -39,24 +52,23 @@ github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_p
 github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2022_2023.csv' # 2023
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-    dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
 
-    # st.download_button(label="Download data as CSV",data=dfa[0].to_csv().encode('utf-8'),file_name='large_df.csv',mime='text/csv')
-    df=pd.read_csv(github_fbref_scores,parse_dates=['Date'])
+    df=pd.read_csv(season_list[season_picker]['scores_file'],parse_dates=['Date'])
 
     df=df.dropna(subset=['Wk'])
 
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.xlsx',parse_dates=['Date']) # 2022
-    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.xlsx',parse_dates=['Date']) # 2023
+    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.xlsx',parse_dates=['Date']) # 2023
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year.xlsx',parse_dates=['Date'])
 
-    odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.csv')
+    # odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.csv')
+    odds = pd.read_csv(season_list[season_picker]['odds_file'],parse_dates=['Date'])
 
     # prior_data.to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds.csv')
     # odds = pd.read_csv(github_current_odds,parse_dates=['Date'])
-    prior_data=pd.read_csv(github_prior_year_odds,parse_dates=['Date'])
+    prior_data=pd.read_csv(season_list[season_picker]['prior_year_file'],parse_dates=['Date'])
 
     def concat_current_prior(x,y):
         # sourcery skip: inline-immediately-returned-variable
@@ -689,9 +701,15 @@ with placeholder_1.expander('Weekly Results'):
     df9['result']=df9['result'].round(1).astype(str)
     df9=df9.set_index('result').sort_index(ascending=False)
     df9['grand_total']=df9.sum(axis=1)
-    df9.loc['Winning_Bets']=(df9.loc['1.0']+(df9.loc['0.5']/2))
-    df9.loc['Losing_Bets']=(df9.loc['-1.0']+(df9.loc['-0.5']/2))
-    df9.loc['No. of Bets Made'] = df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']
+    # df9.loc['TEST_Bets']=df9.loc[df9.index.isin({'1.0','0.5'})].sum(axis=0)
+    # df9.loc['TEST_TEST']=(df9.loc[df9.index.isin({'1.0'})].sum(axis=0))+(df9.loc[df9.index.isin({'0.5'})].sum(axis=0)/2)
+    # st.write('issue', df9)
+    # df9.loc['Winning_Bets']=(df9.loc['1.0']+(df9.loc['0.5']/2))
+    df9.loc['Winning_Bets']=(df9.loc[df9.index.isin({'1.0'})].sum(axis=0))+(df9.loc[df9.index.isin({'0.5'})].sum(axis=0)/2)
+    # df9.loc['Losing_Bets']=(df9.loc['-1.0']+(df9.loc['-0.5']/2))
+    df9.loc['Losing_Bets']=(df9.loc[df9.index.isin({'-1.0'})].sum(axis=0))+(df9.loc[df9.index.isin({'-0.5'})].sum(axis=0)/2)
+    df9.loc['No. of Bets Made'] = df9.loc['Winning_Bets']+df9.loc['Losing_Bets']
+    # df9.loc['No. of Bets Made'] = df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']
     df9.loc['PL_Bets']=df9.loc['Winning_Bets'] - df9.loc['Losing_Bets']
     df9=df9.apply(pd.to_numeric, downcast='float')
     graph_pl_data=df9.loc[['PL_Bets'],:].drop('grand_total',axis=1)
@@ -699,7 +717,9 @@ with placeholder_1.expander('Weekly Results'):
     graph_pl_data['Week']=graph_pl_data['Week'].astype(int)
     graph_pl_data['total_result']=graph_pl_data['week_result'].cumsum()
     graph_pl_data=graph_pl_data.melt(id_vars='Week',var_name='category',value_name='result')
-    df9.loc['% Winning'] = ((df9.loc['1.0']+(df9.loc['0.5']/2)) / (df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']) ).replace({'<NA>':np.NaN})
+    # st.write('issue', df9)
+    df9.loc['% Winning'] = (df9.loc['Winning_Bets'] / (df9.loc['Winning_Bets']+df9.loc['Losing_Bets'])  ).replace({'<NA>':np.NaN})
+    # df9.loc['% Winning'] = ((df9.loc['1.0']+(df9.loc['0.5']/2)) / (df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']) ).replace({'<NA>':np.NaN})
     table_test=df9.copy()
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
