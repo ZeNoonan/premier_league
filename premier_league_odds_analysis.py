@@ -52,8 +52,8 @@ github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_p
 github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2022_2023.csv' # 2023
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
 
     df=pd.read_csv(season_list[season_picker]['scores_file'],parse_dates=['Date'])
 
@@ -724,9 +724,10 @@ with placeholder_1.expander('Weekly Results'):
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
     df9 = df9.format(formatter="{:.0%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
-    
+            # .format(formatter="{:.0f}", subset=df9.index.isin({'0.5'})) \
+
     def graph_pl(decile_df_abs_home_1,column):
         line_cover= alt.Chart(decile_df_abs_home_1).mark_line().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
         alt.Y(column),color=alt.Color('category'))
@@ -776,13 +777,17 @@ with st.expander('Analysis of Factors'):
         # st.write('latest', df_table_1)
         # st.write('latest', df_table_1.shape)
         if df_table_1.shape > (2,7):
-            df_table_1.loc['Winning_Bets']=(df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2))
-            df_table_1.loc['Losing_Bets']=(df_table_1.loc['-1.0']+(df_table_1.loc['-0.5']/2))
-            df_table_1.loc['No. of Bets Made'] = df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)+(df_table_1.loc['-0.5']/2) + df_table_1.loc['-1.0']
+            # df_table_1.loc['Winning_Bets']=(df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2))
+            df_table_1.loc['Winning_Bets']=(df_table_1.loc[df_table_1.index.isin({'1.0'})].sum(axis=0))+(df_table_1.loc[df_table_1.index.isin({'0.5'})].sum(axis=0)/2)
+            # df_table_1.loc['Losing_Bets']=(df_table_1.loc['-1.0']+(df_table_1.loc['-0.5']/2))
+            df_table_1.loc['Losing_Bets']=(df_table_1.loc[df_table_1.index.isin({'-1.0'})].sum(axis=0))+(df_table_1.loc[df_table_1.index.isin({'-0.5'})].sum(axis=0)/2)
+            # df_table_1.loc['No. of Bets Made'] = df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)+(df_table_1.loc['-0.5']/2) + df_table_1.loc['-1.0']
+            df_table_1.loc['No. of Bets Made'] = df_table_1.loc['Winning_Bets']+df_table_1.loc['Losing_Bets']   
             df_table_1.loc['PL_Bets']=df_table_1.loc['Winning_Bets'] - df_table_1.loc['Losing_Bets']
             df_table_1=df_table_1.apply(pd.to_numeric, downcast='float')
-            df_table_1.loc['% Winning'] = ((df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)) /
-            (df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)+(df_table_1.loc['-0.5']/2) + df_table_1.loc['-1.0']) ).replace({'<NA>':np.NaN})
+            # df_table_1.loc['% Winning'] = ((df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)) /
+            # (df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)+(df_table_1.loc['-0.5']/2) + df_table_1.loc['-1.0']) ).replace({'<NA>':np.NaN})
+            df_table_1.loc['% Winning'] = (df_table_1.loc['Winning_Bets'] / (df_table_1.loc['Winning_Bets']+df_table_1.loc['Losing_Bets'])  ).replace({'<NA>':np.NaN})
             # st.write('Returning df with analysis')
             # df_table_1.loc['No. of Bets Made'] = df_table_1.loc[['1.0','-1.0']].sum() # No losing bets so far!!!
             # df_table_1.loc['% Winning'] = ((df_table_1.loc['1.0'] / df_table_1.loc['No. of Bets Made']))
@@ -809,9 +814,10 @@ with st.expander('Analysis of Factors'):
     bets_made_factor_table=bets_made_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?']]
     st.write('This is the matches BET ON broken down by Factor result')
     bets_made_factor_table_presentation = bets_made_factor_table.style.format("{:.1f}", na_rep='-')
-    bets_made_factor_table_presentation = bets_made_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
-            .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
+    # bets_made_factor_table_presentation = bets_made_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
+    #     .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+    #         .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])\
+                # .format(formatter="{:.0f}", subset=( bets_made_factor_table_presentation.index.isin({'0.5'}),df.columns ))
     st.write(bets_made_factor_table_presentation)
 
     # st.write('graph work below')
