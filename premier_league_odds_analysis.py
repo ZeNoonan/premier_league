@@ -28,11 +28,13 @@ season_list={'season_2022': {
     "odds_file": "C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.csv",
     "scores_file": "C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv",
     "team_id": "C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2022_2023.csv",
+    "season_year": "2022_2023",
     "prior_year_file": "C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2021_2022.csv"},
 'season_2021' : {
     "odds_file": "C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.csv",
     "scores_file": "C:/Users/Darragh/Documents/Python/premier_league/scores_2021_2022.csv",
     "team_id": "C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2021_2022.csv",
+    "season_year": "2021_2022",
     "prior_year_file": 'C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2020_2021.csv'}}
 
 
@@ -615,7 +617,8 @@ with st.expander('Analysis of Betting Results across 1 to 5 factors'):
     
 
     totals_1=analysis.groupby([analysis['total_factor'].abs(),'result_all']).agg(winning=('result_all','count')).reset_index()
-    totals_1['result_all']=totals_1['result_all'].replace({0:'tie',1:'win',-1:'lose'})
+    st.write('totals 1', totals_1)
+    totals_1['result_all']=totals_1['result_all'].replace({0:'tie',1:'win',-1:'lose',0.5:'half_win',-0.5:'half_lose'})
     totals_1['result_all']=totals_1['result_all'].astype(str)
     # st.write(totals_1['result_all'].dtypes)
     # st.write(totals_1['winning'].dtypes)
@@ -657,13 +660,20 @@ with st.expander('Analysis of Betting Results across 1 to 5 factors'):
     # st.write('sum of each factor level should correspond to table above',totals_1)
     # st.write('sum of winning column should be 267 I think',totals_1['winning'].sum())
     # st.write('count of week column should be 267',analysis['Week'].count())
-
+    # st.write('test1',totals_1)
     reset_data=totals_1.copy()
-    reset_data['result_all']=reset_data['result_all'].replace({'tie':0,'win':1,'lose':-1})
+    reset_data['result_all']=reset_data['result_all'].replace({'tie':0,'win':1,'lose':-1,'half_win':0.5,'half_lose':-0.5})
     # st.write('test',reset_data)
     reset_data=reset_data.pivot(index='result_all',columns='total_factor',values='winning').fillna(0)
     # st.write('look',reset_data)
-    reset_data['betting_factor_total']=reset_data[3]+reset_data[4]+reset_data[5]
+    dfBool=pd.Series(reset_data.columns.isin([3,4,5]) )
+    # st.write('dfbool', dfBool)
+    st.write(reset_data[reset_data.columns[dfBool]])
+    # https://stackoverflow.com/questions/37391539/pandas-filter-columns-of-a-dataframe-with-bool
+    st.write('before working', reset_data)
+    # reset_data['betting_factor_total']=reset_data[3]+reset_data[4]+reset_data[5]
+    reset_data['betting_factor_total']=reset_data[reset_data.columns[dfBool]].sum(axis=1)
+    st.write('has this worked', reset_data)
     reset_data=reset_data.sort_values(by='betting_factor_total',ascending=False)
 
     reset_data=reset_data.reset_index()
