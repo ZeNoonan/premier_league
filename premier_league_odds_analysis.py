@@ -60,12 +60,17 @@ with st.expander('df'):
     df=pd.read_csv(season_list[season_picker]['scores_file'],parse_dates=['Date'])
 
     df=df.dropna(subset=['Wk'])
-
+    year=season_list[season_picker]['season_year']
+    # st.write('year', year)
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.xlsx',parse_dates=['Date']) # 2022
-    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.xlsx',parse_dates=['Date']) # 2023
+    # test_odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.xlsx',parse_dates=['Date']) # 2022
+    # st.write('test odds', test_odds)
+    # st.write('year 1', year)
+    odds = pd.read_excel(f'C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_{year}.xlsx',parse_dates=['Date']) # 2023
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year.xlsx',parse_dates=['Date'])
 
-    # odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2022_2023.csv')
+    
+    odds.to_csv(f'C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_{year}.csv')
     odds = pd.read_csv(season_list[season_picker]['odds_file'],parse_dates=['Date'])
 
     # prior_data.to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds.csv')
@@ -668,7 +673,7 @@ with st.expander('Analysis of Betting Results across 1 to 5 factors'):
     # st.write('look',reset_data)
     dfBool=pd.Series(reset_data.columns.isin([3,4,5]) )
     # st.write('dfbool', dfBool)
-    st.write(reset_data[reset_data.columns[dfBool]])
+    # st.write(reset_data[reset_data.columns[dfBool]])
     # https://stackoverflow.com/questions/37391539/pandas-filter-columns-of-a-dataframe-with-bool
     # st.write('before working', reset_data)
     # reset_data['betting_factor_total']=reset_data[3]+reset_data[4]+reset_data[5]
