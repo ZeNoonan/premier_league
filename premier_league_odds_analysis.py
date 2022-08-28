@@ -768,12 +768,14 @@ with st.expander('Analysis of Factors'):
         analysis_factors['home_cover_season_success?'] = analysis_factors['home_cover_sign'] * analysis_factors['home_cover_result']  
         analysis_factors['away_cover_season_success?'] = analysis_factors['away_cover_sign'] * analysis_factors['home_cover_result']
         analysis_factors['power_ranking_success?'] = analysis_factors['power_pick'] * analysis_factors['home_cover_result']
+        analysis_factors['momentum_ranking_success?'] = analysis_factors['momentum_pick'] * analysis_factors['home_cover_result']
         df_table = analysis_factors['home_turnover_success?'].value_counts()
         away_turnover=analysis_factors['away_turnover_success?'].value_counts()
         home_cover=analysis_factors['home_cover_season_success?'].value_counts()
         away_cover=analysis_factors['away_cover_season_success?'].value_counts()
         power=analysis_factors['power_ranking_success?'].value_counts()
-        df_table_1=pd.concat([df_table,away_turnover,home_cover,away_cover,power],axis=1)
+        momentum=analysis_factors['momentum_ranking_success?'].value_counts()
+        df_table_1=pd.concat([df_table,away_turnover,home_cover,away_cover,power,momentum],axis=1)
         # df_table_1=pd.concat([df_table,away_turnover,home_cover,away_cover,power],axis=1).reset_index().drop('index',axis=1)
         # st.write('df table', df_table_1)
         # test=df_table_1.reset_index()
@@ -815,25 +817,22 @@ with st.expander('Analysis of Factors'):
     st.write('This is the total number of matches broken down by Factor result')
     cols_to_move=['total_turnover','total_season_cover','power_ranking_success?']
     total_factor_table = total_factor_table[ cols_to_move + [ col for col in total_factor_table if col not in cols_to_move ] ]
-    total_factor_table=total_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?']]
+    total_factor_table=total_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?']]
     
     total_factor_table_presentation = total_factor_table.style.format("{:.1f}", na_rep='-')
-    # total_factor_table_presentation = total_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-    #     .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
-    #         .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
+    total_factor_table_presentation = total_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+            .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     
     st.write(total_factor_table_presentation)
     factor_bets = (analysis_factors[analysis_factors['bet_sign']!=0]).copy()
     bets_made_factor_table = analysis_factor_function(factor_bets)
     # cols_to_move=['total_turnover','total_season_cover','power_ranking_success?']
     bets_made_factor_table = bets_made_factor_table[ cols_to_move + [ col for col in bets_made_factor_table if col not in cols_to_move ] ]
-    bets_made_factor_table=bets_made_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?']]
+    bets_made_factor_table=bets_made_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?']]
     st.write('This is the matches BET ON broken down by Factor result')
     bets_made_factor_table_presentation = bets_made_factor_table.style.format("{:.1f}", na_rep='-')
-    # bets_made_factor_table_presentation = bets_made_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-    #     .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
-    #         .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])\
-                # .format(formatter="{:.0f}", subset=( bets_made_factor_table_presentation.index.isin({'0.5'}),df.columns ))
+    bets_made_factor_table_presentation = bets_made_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :])
     st.write(bets_made_factor_table_presentation)
 
     transposed_df=total_factor_table.transpose().reset_index().set_index('index')
@@ -980,11 +979,16 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     (df_factor['total_factor']==-2)&(df_factor['power_pick']==1) | (df_factor['total_factor']==3)&(df_factor['power_pick']==1) | \
     (df_factor['total_factor']==-3)&(df_factor['power_pick']==-1)
 
+    factor_2_3_momentum_filter = (df_factor['total_factor']==2)&(df_factor['momentum_pick']==-1) | \
+    (df_factor['total_factor']==-2)&(df_factor['momentum_pick']==1) | (df_factor['total_factor']==3)&(df_factor['momentum_pick']==1) | \
+    (df_factor['total_factor']==-3)&(df_factor['momentum_pick']==-1)
+
     df_factor['home_turnover_diagnostic'] = (df_factor['home_turnover_sign'].where(factor_2_3_home_turnover_filter)) * df_factor['home_cover_result']
     df_factor['away_turnover_diagnostic'] = (df_factor['away_turnover_sign'].where(factor_2_3_away_turnover_filter)) * df_factor['home_cover_result']
     df_factor['home_cover_diagnostic'] = (df_factor['home_cover_sign'].where(factor_2_3_home_cover_filter)) * df_factor['home_cover_result']
     df_factor['away_cover_diagnostic'] = (df_factor['away_cover_sign'].where(factor_2_3_away_cover_filter)) * df_factor['home_cover_result']
     df_factor['power_diagnostic'] = (df_factor['power_pick'].where(factor_2_3_power_filter)) * df_factor['home_cover_result']
+    df_factor['momentum_diagnostic'] = (df_factor['momentum_pick'].where(factor_2_3_momentum_filter)) * df_factor['home_cover_result']
     # st.write(df_factor)
 
     df_factor_table = df_factor['home_turnover_diagnostic'].value_counts()
@@ -992,7 +996,8 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     home_cover=df_factor['home_cover_diagnostic'].value_counts()
     away_cover=df_factor['away_cover_diagnostic'].value_counts()
     power=df_factor['power_diagnostic'].value_counts()
-    df_factor_table_1=pd.concat([df_factor_table,away_turnover,home_cover,away_cover,power],axis=1)
+    momentum=df_factor['momentum_diagnostic'].value_counts()
+    df_factor_table_1=pd.concat([df_factor_table,away_turnover,home_cover,away_cover,power,momentum],axis=1)
     df_factor_table_1['total_turnover'] = df_factor_table_1['home_turnover_diagnostic'].add (df_factor_table_1['away_turnover_diagnostic'])
     # st.write(test)
     df_factor_table_1['total_season_cover'] = df_factor_table_1['home_cover_diagnostic'] + df_factor_table_1['away_cover_diagnostic']
@@ -1028,14 +1033,16 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     #     return df_factor_table_1
 
 
-    cols_to_move=['total_turnover','total_season_cover','power_diagnostic']
+    cols_to_move=['total_turnover','total_season_cover','power_diagnostic','momentum_diagnostic']
     df_factor_table_1 = df_factor_table_1[ cols_to_move + [ col for col in df_factor_table_1 if col not in cols_to_move ] ]
-    df_factor_table_1=df_factor_table_1.loc[:,['total_turnover','total_season_cover','power_diagnostic']]
+    df_factor_table_1=df_factor_table_1.loc[:,['total_turnover','total_season_cover','power_diagnostic','momentum_diagnostic']]
 
     df_factor_table_1_presentation = df_factor_table_1.style.format("{:.1f}", na_rep='-')
     # df_factor_table_1_presentation = df_factor_table_1_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
     #     .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
     #         .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
+    df_factor_table_1_presentation = df_factor_table_1_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :])
+
 
 
     st.write(df_factor_table_1_presentation)
