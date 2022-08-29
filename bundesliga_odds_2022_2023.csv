@@ -26,24 +26,24 @@
 24,3,Sat,2022-08-20,18:30:00,Union Berlin,,,,RB Leipzig,,Stadion An der Alten FÃ¶rsterei,,Head-to-Head,0.25,2.06,1.84,0.25,0.25,
 25,3,Sun,2022-08-21,15:30:00,Eint Frankfurt,,,,Köln,,Commerzbank-Arena,,Head-to-Head,-0.25,1.8,2.1,-0.25,-0.25,
 26,3,Sun,2022-08-21,17:30:00,Bochum,,,,Bayern Munich,,Vonovia Ruhrstadion,,Head-to-Head,2.25,1.91,1.99,2.0,2.25,
-27,4,Fri,2022-08-26,20:30:00,Freiburg,,,,Bochum,,Europa-Park Stadion,,Head-to-Head,-1.0,,,,,
-28,4,Sat,2022-08-27,15:30:00,Hoffenheim,,,,Augsburg,,PreZero Arena,,Head-to-Head,-0.75,,,,,
-29,4,Sat,2022-08-27,15:30:00,Mainz 05,,,,Leverkusen,,Opel Arena,,Head-to-Head,0.25,,,,,
-30,4,Sat,2022-08-27,15:30:00,RB Leipzig,,,,Wolfsburg,,Red Bull Arena,,Head-to-Head,-1.0,,,,,
-31,4,Sat,2022-08-27,15:30:00,Schalke 04,,,,Union Berlin,,Veltins-Arena,,Head-to-Head,0.25,,,,,
-32,4,Sat,2022-08-27,15:30:00,Hertha BSC,,,,Dortmund,,Olympiastadion Berlin,,Head-to-Head,1.0,,,,,
-33,4,Sat,2022-08-27,18:30:00,Bayern Munich,,,,M'Gladbach,,Allianz Arena,,Head-to-Head,-1.75,,,,,
-34,4,Sun,2022-08-28,15:30:00,Köln,,,,Stuttgart,,RheinEnergieSTADION,,Head-to-Head,-0.5,,,,,
-35,4,Sun,2022-08-28,17:30:00,Werder Bremen,,,,Eint Frankfurt,,Weserstadion,,Head-to-Head,0.25,,,,,
-36,5,Fri,2022-09-02,20:30:00,Dortmund,,,,Hoffenheim,,Signal Iduna Park,,Head-to-Head,,,,,,
-37,5,Sat,2022-09-03,15:30:00,Stuttgart,,,,Schalke 04,,Mercedes-Benz Arena,,Head-to-Head,,,,,,
-38,5,Sat,2022-09-03,15:30:00,Bochum,,,,Werder Bremen,,Vonovia Ruhrstadion,,Head-to-Head,,,,,,
-39,5,Sat,2022-09-03,15:30:00,Union Berlin,,,,Bayern Munich,,Stadion An der Alten FÃ¶rsterei,,Head-to-Head,,,,,,
-40,5,Sat,2022-09-03,15:30:00,Leverkusen,,,,Freiburg,,BayArena,,Head-to-Head,,,,,,
-41,5,Sat,2022-09-03,15:30:00,Wolfsburg,,,,Köln,,Volkswagen Arena,,Head-to-Head,,,,,,
-42,5,Sat,2022-09-03,18:30:00,Eint Frankfurt,,,,RB Leipzig,,Commerzbank-Arena,,Head-to-Head,,,,,,
-43,5,Sun,2022-09-04,15:30:00,Augsburg,,,,Hertha BSC,,WWK Arena,,Head-to-Head,,,,,,
-44,5,Sun,2022-09-04,17:30:00,M'Gladbach,,,,Mainz 05,,Stadion im Borussia-Park,,Head-to-Head,,,,,,
+27,4,Fri,2022-08-26,20:30:00,Freiburg,,,,Bochum,,Europa-Park Stadion,,Head-to-Head,-1.25,2.05,1.85,-1.0,-1.25,-1.25
+28,4,Sat,2022-08-27,15:30:00,Hoffenheim,,,,Augsburg,,PreZero Arena,,Head-to-Head,-1.25,1.88,2.02,-0.75,-1.25,-1.25
+29,4,Sat,2022-08-27,15:30:00,Mainz 05,,,,Leverkusen,,Opel Arena,,Head-to-Head,0.0,1.98,1.92,0.25,0.0,0.0
+30,4,Sat,2022-08-27,15:30:00,RB Leipzig,,,,Wolfsburg,,Red Bull Arena,,Head-to-Head,-1.25,2.01,1.89,-1.0,-1.25,-1.25
+31,4,Sat,2022-08-27,15:30:00,Schalke 04,,,,Union Berlin,,Veltins-Arena,,Head-to-Head,0.25,1.93,1.97,0.25,0.25,0.25
+32,4,Sat,2022-08-27,15:30:00,Hertha BSC,,,,Dortmund,,Olympiastadion Berlin,,Head-to-Head,0.75,2.02,1.88,1.0,0.75,0.75
+33,4,Sat,2022-08-27,18:30:00,Bayern Munich,,,,M'Gladbach,,Allianz Arena,,Head-to-Head,-2.25,1.87,2.03,-1.75,-2.25,-2.25
+34,4,Sun,2022-08-28,15:30:00,Köln,,,,Stuttgart,,RheinEnergieSTADION,,Head-to-Head,-0.25,1.83,2.07,-0.5,-0.25,-0.5
+35,4,Sun,2022-08-28,17:30:00,Werder Bremen,,,,Eint Frankfurt,,Weserstadion,,Head-to-Head,-0.25,2.09,1.81,0.25,0.0,0.0
+36,5,Fri,2022-09-02,20:30:00,Dortmund,,,,Hoffenheim,,Signal Iduna Park,,Head-to-Head,,,,-1.0,,
+37,5,Sat,2022-09-03,15:30:00,Stuttgart,,,,Schalke 04,,Mercedes-Benz Arena,,Head-to-Head,,,,-0.5,,
+38,5,Sat,2022-09-03,15:30:00,Bochum,,,,Werder Bremen,,Vonovia Ruhrstadion,,Head-to-Head,,,,0.25,,
+39,5,Sat,2022-09-03,15:30:00,Union Berlin,,,,Bayern Munich,,Stadion An der Alten FÃ¶rsterei,,Head-to-Head,,,,1.25,,
+40,5,Sat,2022-09-03,15:30:00,Leverkusen,,,,Freiburg,,BayArena,,Head-to-Head,,,,-0.5,,
+41,5,Sat,2022-09-03,15:30:00,Wolfsburg,,,,Köln,,Volkswagen Arena,,Head-to-Head,,,,-0.25,,
+42,5,Sat,2022-09-03,18:30:00,Eint Frankfurt,,,,RB Leipzig,,Commerzbank-Arena,,Head-to-Head,,,,0.5,,
+43,5,Sun,2022-09-04,15:30:00,Augsburg,,,,Hertha BSC,,WWK Arena,,Head-to-Head,,,,0.0,,
+44,5,Sun,2022-09-04,17:30:00,M'Gladbach,,,,Mainz 05,,Stadion im Borussia-Park,,Head-to-Head,,,,-0.25,,
 45,6,Fri,2022-09-09,20:30:00,Werder Bremen,,,,Augsburg,,Weserstadion,,Head-to-Head,,,,,,
 46,6,Sat,2022-09-10,15:30:00,Bayern Munich,,,,Stuttgart,,Allianz Arena,,Head-to-Head,,,,,,
 47,6,Sat,2022-09-10,15:30:00,Eint Frankfurt,,,,Wolfsburg,,Commerzbank-Arena,,Head-to-Head,,,,,,
