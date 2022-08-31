@@ -9,7 +9,7 @@ import seaborn as sns
 st.set_page_config(layout="wide")
 current_week=38
 finished_week=38
-
+number_of_factors_required=4
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
@@ -427,15 +427,38 @@ with st.expander('Power Ranking by Week'):
     st.altair_chart(chart_power + text,use_container_width=True)
 # st.write('updated df', updated_df)
 
+with st.expander('Momentum Factor'):
+    
+    updated_df_with_momentum=updated_df.loc[:,['Week','Date','Home ID','Home Team','Away ID', 'Away Team','Spread','Home Points','Away Points',
+        'home_power','away_power','home_cover','away_cover','home_turnover_sign','away_turnover_sign',
+        'home_cover_sign','away_cover_sign','power_pick','home_cover_result','Opening Spread']]
+    # st.write('update', updated_df_with_momentum)
+    updated_df_with_momentum['momentum_pick']=np.where(updated_df_with_momentum['Spread']==updated_df_with_momentum['Opening Spread'],0,np.where(
+        updated_df_with_momentum['Spread']<updated_df_with_momentum['Opening Spread'],1,-1))
+
+
 with placeholder_2.expander('Betting Slip Matches'):
     def run_analysis(updated_df):
-        betting_matches=updated_df.loc[:,['Week','Date','Home ID','Home Team','Away ID', 'Away Team','Spread','Home Points','Away Points',
+        # betting_matches=updated_df.loc[:,['Week','Date','Home ID','Home Team','Away ID', 'Away Team','Spread','Home Points','Away Points',
+        # 'home_power','away_power','home_cover','away_cover','home_turnover_sign','away_turnover_sign',
+        # 'home_cover_sign','away_cover_sign','power_pick','home_cover_result']]
+
+        betting_matches=updated_df_with_momentum.loc[:,['Week','Date','Home ID','Home Team','Away ID', 'Away Team','Spread','Home Points','Away Points',
         'home_power','away_power','home_cover','away_cover','home_turnover_sign','away_turnover_sign',
-        'home_cover_sign','away_cover_sign','power_pick','home_cover_result']]
+        'home_cover_sign','away_cover_sign','power_pick','home_cover_result','momentum_pick','Opening Spread']]
+
+        # betting_matches['total_factor']=betting_matches['home_turnover_sign']+betting_matches['away_turnover_sign']+betting_matches['home_cover_sign']+\
+        # betting_matches['away_cover_sign']+betting_matches['power_pick']
+
         betting_matches['total_factor']=betting_matches['home_turnover_sign']+betting_matches['away_turnover_sign']+betting_matches['home_cover_sign']+\
-        betting_matches['away_cover_sign']+betting_matches['power_pick']
-        betting_matches['bet_on'] = np.where(betting_matches['total_factor']>2,betting_matches['Home Team'],np.where(betting_matches['total_factor']<-2,betting_matches['Away Team'],''))
-        betting_matches['bet_sign'] = (np.where(betting_matches['total_factor']>2,1,np.where(betting_matches['total_factor']<-2,-1,0)))
+        betting_matches['away_cover_sign']+betting_matches['power_pick']+betting_matches['momentum_pick']
+
+        betting_matches['bet_on'] = np.where(betting_matches['total_factor']>(number_of_factors_required-1),betting_matches['Home Team'],
+        np.where(betting_matches['total_factor']<-(number_of_factors_required-1),betting_matches['Away Team'],''))
+        
+        betting_matches['bet_sign'] = (np.where(betting_matches['total_factor']>(number_of_factors_required-1),
+        1,np.where(betting_matches['total_factor']<-(number_of_factors_required-1),-1,0)))
+
         betting_matches['bet_sign'] = betting_matches['bet_sign'].astype(float)
         betting_matches['home_cover'] = betting_matches['home_cover'].astype(float)
         betting_matches['result']=betting_matches['home_cover_result'] * betting_matches['bet_sign']
@@ -459,7 +482,7 @@ with placeholder_2.expander('Betting Slip Matches'):
     presentation_betting_matches=betting_matches.copy()
 
     # https://towardsdatascience.com/7-reasons-why-you-should-use-the-streamlit-aggrid-component-2d9a2b6e32f0
-    grid_height = st.number_input("Grid height", min_value=400, value=550, step=100)
+    grid_height = st.number_input("Grid height", min_value=400, value=1550, step=100)
     gb = GridOptionsBuilder.from_dataframe(presentation_betting_matches)
     gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
     gb.configure_column("home_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
@@ -648,8 +671,8 @@ with placeholder_1.expander('Weekly Results'):
     df9['result']=df9['result'].round(1).astype(str)
     df9=df9.set_index('result').sort_index(ascending=False)
     df9['grand_total']=df9.sum(axis=1)
-    df9.loc['Winning_Bets']=(df9.loc['1.0']+(df9.loc['0.5']/2))
-    df9.loc['Losing_Bets']=(df9.loc['-1.0']+(df9.loc['-0.5']/2))
+    df9.loc['Winning_Bets']=(df9.loc[df9.index.isin({'1.0'})].sum(axis=0))+(df9.loc[df9.index.isin({'0.5'})].sum(axis=0)/2)
+    df9.loc['Losing_Bets']=(df9.loc[df9.index.isin({'-1.0'})].sum(axis=0))+(df9.loc[df9.index.isin({'-0.5'})].sum(axis=0)/2)
     df9.loc['No. of Bets Made'] = df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']
     df9.loc['PL_Bets']=df9.loc['Winning_Bets'] - df9.loc['Losing_Bets']
     df9=df9.apply(pd.to_numeric, downcast='float')
