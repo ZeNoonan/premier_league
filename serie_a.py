@@ -673,7 +673,7 @@ with placeholder_1.expander('Weekly Results'):
     df9['grand_total']=df9.sum(axis=1)
     df9.loc['Winning_Bets']=(df9.loc[df9.index.isin({'1.0'})].sum(axis=0))+(df9.loc[df9.index.isin({'0.5'})].sum(axis=0)/2)
     df9.loc['Losing_Bets']=(df9.loc[df9.index.isin({'-1.0'})].sum(axis=0))+(df9.loc[df9.index.isin({'-0.5'})].sum(axis=0)/2)
-    df9.loc['No. of Bets Made'] = df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']
+    df9.loc['No. of Bets Made'] = df9.loc['Winning_Bets']+df9.loc['Losing_Bets']
     df9.loc['PL_Bets']=df9.loc['Winning_Bets'] - df9.loc['Losing_Bets']
     df9=df9.apply(pd.to_numeric, downcast='float')
     graph_pl_data=df9.loc[['PL_Bets'],:].drop('grand_total',axis=1)
@@ -681,14 +681,11 @@ with placeholder_1.expander('Weekly Results'):
     graph_pl_data['Week']=graph_pl_data['Week'].astype(int)
     graph_pl_data['total_result']=graph_pl_data['week_result'].cumsum()
     graph_pl_data=graph_pl_data.melt(id_vars='Week',var_name='category',value_name='result')
-    df9.loc['% Winning'] = ((df9.loc['1.0']+(df9.loc['0.5']/2)) / (df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']) ).replace({'<NA>':np.NaN})
+    df9.loc['% Winning'] = (df9.loc['Winning_Bets'] / (df9.loc['Winning_Bets']+df9.loc['Losing_Bets'])  ).replace({'<NA>':np.NaN})
     table_test=df9.copy()
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
-    df9 = df9.format(formatter="{:.0%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
-            .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
-    
+    df9 = df9.format(formatter="{:.0%}", subset=pd.IndexSlice[['% Winning'], :])   
     def graph_pl(decile_df_abs_home_1,column):
         line_cover= alt.Chart(decile_df_abs_home_1).mark_line().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
         alt.Y(column),color=alt.Color('category'))
@@ -713,12 +710,14 @@ with st.expander('Analysis of Factors'):
         analysis_factors['home_cover_season_success?'] = analysis_factors['home_cover_sign'] * analysis_factors['home_cover_result']  
         analysis_factors['away_cover_season_success?'] = analysis_factors['away_cover_sign'] * analysis_factors['home_cover_result']
         analysis_factors['power_ranking_success?'] = analysis_factors['power_pick'] * analysis_factors['home_cover_result']
+        analysis_factors['momentum_ranking_success?'] = analysis_factors['momentum_pick'] * analysis_factors['home_cover_result']
         df_table = analysis_factors['home_turnover_success?'].value_counts()
         away_turnover=analysis_factors['away_turnover_success?'].value_counts()
         home_cover=analysis_factors['home_cover_season_success?'].value_counts()
         away_cover=analysis_factors['away_cover_season_success?'].value_counts()
         power=analysis_factors['power_ranking_success?'].value_counts()
-        df_table_1=pd.concat([df_table,away_turnover,home_cover,away_cover,power],axis=1)
+        momentum=analysis_factors['momentum_ranking_success?'].value_counts()
+        df_table_1=pd.concat([df_table,away_turnover,home_cover,away_cover,power,momentum],axis=1)
         # df_table_1=pd.concat([df_table,away_turnover,home_cover,away_cover,power],axis=1).reset_index().drop('index',axis=1)
         # st.write('df table', df_table_1)
         # test=df_table_1.reset_index()
@@ -731,20 +730,24 @@ with st.expander('Analysis of Factors'):
         df_table_1=df_table_1.reset_index()
         # st.write('reset data', df_table_1)
         df_table_1['index']=df_table_1['index'].astype(str)
-        df_table_1=df_table_1.set_index('index').sort_index(ascending=False).fillna(0)
+        df_table_1=df_table_1.set_index('index')
 
 
         df_table_1.loc['Total']=df_table_1.sum()
         # st.write('latest', df_table_1)
         # st.write('latest', df_table_1.shape)
         if df_table_1.shape > (2,7):
-            df_table_1.loc['Winning_Bets']=(df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2))
-            df_table_1.loc['Losing_Bets']=(df_table_1.loc['-1.0']+(df_table_1.loc['-0.5']/2))
-            df_table_1.loc['No. of Bets Made'] = df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)+(df_table_1.loc['-0.5']/2) + df_table_1.loc['-1.0']
+            # df_table_1.loc['Winning_Bets']=(df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2))
+            df_table_1.loc['Winning_Bets']=(df_table_1.loc[df_table_1.index.isin({'1.0'})].sum(axis=0))+(df_table_1.loc[df_table_1.index.isin({'0.5'})].sum(axis=0)/2)
+            # df_table_1.loc['Losing_Bets']=(df_table_1.loc['-1.0']+(df_table_1.loc['-0.5']/2))
+            df_table_1.loc['Losing_Bets']=(df_table_1.loc[df_table_1.index.isin({'-1.0'})].sum(axis=0))+(df_table_1.loc[df_table_1.index.isin({'-0.5'})].sum(axis=0)/2)
+            # df_table_1.loc['No. of Bets Made'] = df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)+(df_table_1.loc['-0.5']/2) + df_table_1.loc['-1.0']
+            df_table_1.loc['No. of Bets Made'] = df_table_1.loc['Winning_Bets']+df_table_1.loc['Losing_Bets']   
             df_table_1.loc['PL_Bets']=df_table_1.loc['Winning_Bets'] - df_table_1.loc['Losing_Bets']
             df_table_1=df_table_1.apply(pd.to_numeric, downcast='float')
-            df_table_1.loc['% Winning'] = ((df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)) /
-            (df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)+(df_table_1.loc['-0.5']/2) + df_table_1.loc['-1.0']) ).replace({'<NA>':np.NaN})
+            # df_table_1.loc['% Winning'] = ((df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)) /
+            # (df_table_1.loc['1.0']+(df_table_1.loc['0.5']/2)+(df_table_1.loc['-0.5']/2) + df_table_1.loc['-1.0']) ).replace({'<NA>':np.NaN})
+            df_table_1.loc['% Winning'] = (df_table_1.loc['Winning_Bets'] / (df_table_1.loc['Winning_Bets']+df_table_1.loc['Losing_Bets'])  ).replace({'<NA>':np.NaN})
             # st.write('Returning df with analysis')
             # df_table_1.loc['No. of Bets Made'] = df_table_1.loc[['1.0','-1.0']].sum() # No losing bets so far!!!
             # df_table_1.loc['% Winning'] = ((df_table_1.loc['1.0'] / df_table_1.loc['No. of Bets Made']))
@@ -756,12 +759,11 @@ with st.expander('Analysis of Factors'):
     st.write('This is the total number of matches broken down by Factor result')
     cols_to_move=['total_turnover','total_season_cover','power_ranking_success?']
     total_factor_table = total_factor_table[ cols_to_move + [ col for col in total_factor_table if col not in cols_to_move ] ]
-    total_factor_table=total_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?']]
+    total_factor_table=total_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?']]
     
     total_factor_table_presentation = total_factor_table.style.format("{:.1f}", na_rep='-')
-    # st.write('all ok in here?????',total_factor_table_presentation)
     total_factor_table_presentation = total_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     
     st.write(total_factor_table_presentation)
@@ -769,20 +771,20 @@ with st.expander('Analysis of Factors'):
     bets_made_factor_table = analysis_factor_function(factor_bets)
     # cols_to_move=['total_turnover','total_season_cover','power_ranking_success?']
     bets_made_factor_table = bets_made_factor_table[ cols_to_move + [ col for col in bets_made_factor_table if col not in cols_to_move ] ]
-    bets_made_factor_table=bets_made_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?']]
+    bets_made_factor_table=bets_made_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?']]
     st.write('This is the matches BET ON broken down by Factor result')
     bets_made_factor_table_presentation = bets_made_factor_table.style.format("{:.1f}", na_rep='-')
-    bets_made_factor_table_presentation = bets_made_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]) \
-    .format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
-            .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
-            # .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :])
+    bets_made_factor_table_presentation = bets_made_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :])
     st.write(bets_made_factor_table_presentation)
 
+    transposed_df=total_factor_table.transpose().reset_index().set_index('index')
+    dfBool=pd.Series(transposed_df.columns.isin(['0.0','-0.0','-0.5','0.5','1.0','-1.0']) )
+    test_bool=transposed_df[transposed_df.columns[dfBool]].fillna(0).transpose()
+    # st.write('test bool', test_bool)
 
-    # st.write('why is 0 missing>>>???', total_factor_table)
-    graph_factor_table = total_factor_table.copy().loc[['-1.0','-0.0','1.0'],:].reset_index().rename(columns={'index':'result_all'})
-    graph_factor_table['result_all']=graph_factor_table['result_all'].replace({'-0.0':'tie','1.0':'win','-1.0':'lose'})
+    graph_factor_table = test_bool.reset_index().rename(columns={'index':'result_all'})
+    # graph_factor_table = total_factor_table.copy().loc[['-1.0','0.0','1.0'],:].reset_index().rename(columns={'index':'result_all'})
+    graph_factor_table['result_all']=graph_factor_table['result_all'].replace({'-0':'tie','0':'tie','1':'win','-1':'lose','0.5':'half_win','-0.5':'half_lose'})
     graph_factor_table=graph_factor_table.melt(id_vars='result_all',var_name='total_factor',value_name='winning')
     chart_power= alt.Chart(graph_factor_table).mark_bar().encode(alt.X('total_factor:O',axis=alt.Axis(title='factor',labelAngle=0)),
     alt.Y('winning'),color=alt.Color('result_all',scale=color_scale))
@@ -812,6 +814,9 @@ with st.expander('Analysis of Factors'):
     updated_test_chart=chart_power+vline+text
     
     st.altair_chart(updated_test_chart,use_container_width=True)
+
+
+    # st.write(graph_factor_table)
 
 with st.expander('Deep Dive on Power Factor'):
     power_factor_analysis = analysis_factors.copy()
@@ -918,11 +923,16 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     (df_factor['total_factor']==-2)&(df_factor['power_pick']==1) | (df_factor['total_factor']==3)&(df_factor['power_pick']==1) | \
     (df_factor['total_factor']==-3)&(df_factor['power_pick']==-1)
 
+    factor_2_3_momentum_filter = (df_factor['total_factor']==2)&(df_factor['momentum_pick']==-1) | \
+    (df_factor['total_factor']==-2)&(df_factor['momentum_pick']==1) | (df_factor['total_factor']==3)&(df_factor['momentum_pick']==1) | \
+    (df_factor['total_factor']==-3)&(df_factor['momentum_pick']==-1)
+
     df_factor['home_turnover_diagnostic'] = (df_factor['home_turnover_sign'].where(factor_2_3_home_turnover_filter)) * df_factor['home_cover_result']
     df_factor['away_turnover_diagnostic'] = (df_factor['away_turnover_sign'].where(factor_2_3_away_turnover_filter)) * df_factor['home_cover_result']
     df_factor['home_cover_diagnostic'] = (df_factor['home_cover_sign'].where(factor_2_3_home_cover_filter)) * df_factor['home_cover_result']
     df_factor['away_cover_diagnostic'] = (df_factor['away_cover_sign'].where(factor_2_3_away_cover_filter)) * df_factor['home_cover_result']
     df_factor['power_diagnostic'] = (df_factor['power_pick'].where(factor_2_3_power_filter)) * df_factor['home_cover_result']
+    df_factor['momentum_diagnostic'] = (df_factor['momentum_pick'].where(factor_2_3_momentum_filter)) * df_factor['home_cover_result']
     # st.write(df_factor)
 
     df_factor_table = df_factor['home_turnover_diagnostic'].value_counts()
@@ -930,7 +940,8 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     home_cover=df_factor['home_cover_diagnostic'].value_counts()
     away_cover=df_factor['away_cover_diagnostic'].value_counts()
     power=df_factor['power_diagnostic'].value_counts()
-    df_factor_table_1=pd.concat([df_factor_table,away_turnover,home_cover,away_cover,power],axis=1)
+    momentum=df_factor['momentum_diagnostic'].value_counts()
+    df_factor_table_1=pd.concat([df_factor_table,away_turnover,home_cover,away_cover,power,momentum],axis=1)
     df_factor_table_1['total_turnover'] = df_factor_table_1['home_turnover_diagnostic'].add (df_factor_table_1['away_turnover_diagnostic'])
     # st.write(test)
     df_factor_table_1['total_season_cover'] = df_factor_table_1['home_cover_diagnostic'] + df_factor_table_1['away_cover_diagnostic']
@@ -940,7 +951,7 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     # st.write('reset data', df_factor_table_1)
     df_factor_table_1['index']=df_factor_table_1['index'].astype(float)
     df_factor_table_1['index']=df_factor_table_1['index'].astype(str)
-    df_factor_table_1=df_factor_table_1.set_index('index').sort_index(ascending=False).fillna(0)
+    df_factor_table_1=df_factor_table_1.set_index('index').sort_index(ascending=False)
 
 
     df_factor_table_1.loc['Total']=df_factor_table_1.sum()
@@ -948,13 +959,16 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     # st.write('latest', df_factor_table_1.shape)
 
     if df_factor_table_1.shape > (2,7):
-        df_factor_table_1.loc['Winning_Bets']=(df_factor_table_1.loc['1.0']+(df_factor_table_1.loc['0.5']/2))
-        df_factor_table_1.loc['Losing_Bets']=(df_factor_table_1.loc['-1.0']+(df_factor_table_1.loc['-0.5']/2))
-        df_factor_table_1.loc['No. of Bets Made'] = df_factor_table_1.loc['1.0']+(df_factor_table_1.loc['0.5']/2)+(df_factor_table_1.loc['-0.5']/2) + df_factor_table_1.loc['-1.0']
+        df_factor_table_1.loc['Winning_Bets']=(df_factor_table_1.loc[df_factor_table_1.index.isin({'1.0'})].sum(axis=0))+(df_factor_table_1.loc[df_factor_table_1.index.isin({'0.5'})].sum(axis=0)/2)
+        # df_factor_table_1.loc['Losing_Bets']=(df_factor_table_1.loc['-1.0']+(df_factor_table_1.loc['-0.5']/2))
+        df_factor_table_1.loc['Losing_Bets']=(df_factor_table_1.loc[df_factor_table_1.index.isin({'-1.0'})].sum(axis=0))+(df_factor_table_1.loc[df_factor_table_1.index.isin({'-0.5'})].sum(axis=0)/2)
+        df_factor_table_1.loc['No. of Bets Made'] = df_factor_table_1.loc['Winning_Bets']+df_factor_table_1.loc['Losing_Bets']
+        
         df_factor_table_1.loc['PL_Bets']=df_factor_table_1.loc['Winning_Bets'] - df_factor_table_1.loc['Losing_Bets']
         df_factor_table_1=df_factor_table_1.apply(pd.to_numeric, downcast='float')
-        df_factor_table_1.loc['% Winning'] = ((df_factor_table_1.loc['1.0']+(df_factor_table_1.loc['0.5']/2)) /
-        (df_factor_table_1.loc['1.0']+(df_factor_table_1.loc['0.5']/2)+(df_factor_table_1.loc['-0.5']/2) + df_factor_table_1.loc['-1.0']) ).replace({'<NA>':np.NaN})
+        df_factor_table_1.loc['% Winning'] = (df_factor_table_1.loc['Winning_Bets'] / (df_factor_table_1.loc['Winning_Bets']+df_factor_table_1.loc['Losing_Bets'])  ).replace({'<NA>':np.NaN})
+        # df_factor_table_1.loc['% Winning'] = ((df_factor_table_1.loc['1.0']+(df_factor_table_1.loc['0.5']/2)) /
+        # (df_factor_table_1.loc['1.0']+(df_factor_table_1.loc['0.5']/2)+(df_factor_table_1.loc['-0.5']/2) + df_factor_table_1.loc['-1.0']) ).replace({'<NA>':np.NaN})
 
         # df_factor_table_1.loc['No. of Bets Made'] = df_factor_table_1.loc[['1.0','-1.0']].sum() 
         # df_factor_table_1.loc['% Winning'] = ((df_factor_table_1.loc['1.0'] / df_factor_table_1.loc['No. of Bets Made']))
@@ -963,14 +977,16 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     #     return df_factor_table_1
 
 
-    cols_to_move=['total_turnover','total_season_cover','power_diagnostic']
+    cols_to_move=['total_turnover','total_season_cover','power_diagnostic','momentum_diagnostic']
     df_factor_table_1 = df_factor_table_1[ cols_to_move + [ col for col in df_factor_table_1 if col not in cols_to_move ] ]
-    df_factor_table_1=df_factor_table_1.loc[:,['total_turnover','total_season_cover','power_diagnostic']]
+    df_factor_table_1=df_factor_table_1.loc[:,['total_turnover','total_season_cover','power_diagnostic','momentum_diagnostic']]
 
     df_factor_table_1_presentation = df_factor_table_1.style.format("{:.1f}", na_rep='-')
-    df_factor_table_1_presentation = df_factor_table_1_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
-            .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
+    # df_factor_table_1_presentation = df_factor_table_1_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
+    #     .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+    #         .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
+    df_factor_table_1_presentation = df_factor_table_1_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :])
+
 
 
     st.write(df_factor_table_1_presentation)
