@@ -20,8 +20,8 @@ home_adv_parameter = .3
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    # dfa=pd.read_html('https://fbref.com/en/comps/11/11611/schedule/2022-2023-Serie-A-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a_2022_2023.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/11/11611/schedule/2022-2023-Serie-A-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a_2022_2023.csv')
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a_2022_2023.csv',parse_dates=['Date'])
     
     df=df.dropna(subset=['Wk'])
