@@ -17,8 +17,10 @@ future_gameweek=39
 current_week=38
 current_year=2022
 
-future_gameweek=2
-current_week=1
+min_games_played_for_calc=2
+
+future_gameweek=current_week+1
+current_week=6
 current_year=2023
 
 with st.expander('Data Prep'):
@@ -160,13 +162,16 @@ with st.expander('Data Prep'):
 
 
     full_df.loc [ (full_df['full_name']=='heung-min_son'), 'full_name' ] = 'son_heung-min'
+    full_df.loc [ (full_df['full_name']=='gabriel teodoro_martinelli silva'), 'full_name' ] = 'gabriel_martinelli silva'
     full_df.loc [ (full_df['full_name']=='benjamin_chilwell'), 'full_name' ] = 'ben_chilwell'
     full_df.loc [ (full_df['full_name']=='gabriel_magalhães'), 'full_name' ] = 'gabriel_dos santos magalhães'
     full_df.loc [ (full_df['full_name']=='bruno miguel_borges fernandes'), 'full_name' ] = 'bruno_borges fernandes'
     full_df.loc [ (full_df['full_name']=='joão pedro cavaco_cancelo'), 'full_name' ] = 'joão_cancelo'
     full_df.loc [ (full_df['full_name']=='gabriel fernando_de jesus'), 'full_name' ] = 'gabriel_fernando de jesus'
     full_df.loc [ (full_df['full_name']=='diogo_jota'), 'full_name' ] = 'diogo_teixeira da silva'
-
+    full_df.loc [ (full_df['full_name']=='emerson aparecido_leite de souza junior'), 'full_name' ] = 'emerson_leite de souza junior'
+    full_df.loc [ (full_df['full_name']=='josé diogo_dalot teixeira'), 'full_name' ] = 'diogo_dalot teixeira'
+    # st.write('whwere is chil', full_df[full_df['full_name'].str.contains('martinel')])
 
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
@@ -383,7 +388,7 @@ with st.expander('To run the GW analysis'):
             # st.write('this is mitro df',latest_df[ (latest_df['games_total']>38) & (latest_df['full_name']==('aleksandar_mitrović')) ] )
             def ranked_players(x):
                 # only want players who played greater than a season ie 38 games big sample size
-                x = x[x['games_total']>38]
+                x = x[x['games_total']>min_games_played_for_calc]
                 # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
                 x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
                 x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
@@ -585,6 +590,20 @@ with st.expander('Graph GK data'):
 
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
+with st.expander('fb ref'):
+    # df_excel=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/sportsref_download.csv')
+    d_1=pd.read_html('https://fbref.com/en/squads/18bb7c10/Arsenal-Stats')[0]
+    d_2=pd.read_html('https://fbref.com/en/squads/8602292d/Aston-Villa-Stats')[0]
+    d_3=pd.read_html('https://fbref.com/en/squads/4ba7cbea/Bournemouth-Stats')[0]
+    d_4=pd.read_html('https://fbref.com/en/squads/cd051869/Brentford-Stats')[0]
+    d_5=pd.read_html('https://fbref.com/en/squads/d07537b9/Brighton-and-Hove-Albion-Stats')[0]
+
+    st.write('1',d_3)
+    # st.write('2',dfa[3])
+    # st.write('3',dfa[4])
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
+
+
 with st.expander('GW Detail with Latest Transfers'):
     # current_week=22
     test_data=data_for_processing_current_transfers.drop(['transfers_balance','Price'],axis=1).copy()
@@ -626,7 +645,7 @@ with st.expander('GW Detail with Latest Transfers'):
 
     def ranked_players(x):
         # only want players who played greater than a season ie 38 games big sample size
-        x = x[x['games_total']>38]
+        x = x[x['games_total']>min_games_played_for_calc]
         # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
         x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
         # x['ppg_19_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
@@ -707,8 +726,8 @@ with st.expander('GW Detail with Latest Transfers'):
 with st.expander('GW Graph with Latest Transfers'):    
     current_data_week=current_data_week.rename(columns={'totals_ranked':'cover','full_name':'Team','week':'Week'})
     current_data_week_df=current_data_week.loc[:,['Week','Team','cover','Position']].copy()
-    # st.write('should gw 1', merge_historical_stdc_df)
-    # st.write('should be gw2', current_data_week_df)
+    # st.write('should gw 1 is haaland in here', merge_historical_stdc_df[merge_historical_stdc_df['Team'].str.contains('haal')])
+    # st.write('should be gw2 is haaland in here', current_data_week_df[current_data_week_df['Team'].str.contains('haal')])
     stdc_df=pd.concat([merge_historical_stdc_df,current_data_week_df])
     stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
     my_players_data=stdc_df.copy()
@@ -722,9 +741,8 @@ with st.expander('GW Graph with Latest Transfers'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('GW Graph with My Players'):
-    my_players=['harry_kane','gabriel teodoro_martinelli silva','bruno miguel_borges fernandes','trent_alexander-arnold',
-    'joão pedro cavaco_cancelo','riyad_mahrez','jarrod_bowen','diogo_jota','hugo_lloris','fernando_marçal',
-    'matthew_lowton','ben_foster','joshua_king']
+    my_players=['jamie_vardy','kevin_de bruyne','joel_matip','trent_alexander-arnold',
+    'andrew_robertson','kieran_trippier','callum_wilson','son_heung-min','ben_chilwell']
 
     # st.write(my_players_data)
     stdc_df=my_players_data[my_players_data['Team'].isin(my_players)]
