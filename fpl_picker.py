@@ -173,6 +173,46 @@ with st.expander('Data Prep'):
     full_df.loc [ (full_df['full_name']=='josé diogo_dalot teixeira'), 'full_name' ] = 'diogo_dalot teixeira'
     # st.write('whwere is chil', full_df[full_df['full_name'].str.contains('martinel')])
 
+    # d_1=pd.read_html('https://fbref.com/en/squads/18bb7c10/Arsenal-Stats')[0]
+    # d_2=pd.read_html('https://fbref.com/en/squads/8602292d/Aston-Villa-Stats')[0]
+    # d_3=pd.read_html('https://fbref.com/en/squads/4ba7cbea/Bournemouth-Stats')[0]
+    # d_4=pd.read_html('https://fbref.com/en/squads/cd051869/Brentford-Stats')[0]
+    # d_5=pd.read_html('https://fbref.com/en/squads/cff3d9bb/Chelsea-Stats')[0]
+    # d_6=pd.read_html('https://fbref.com/en/squads/47c64c55/Crystal-Palace-Stats')[0]
+    # d_7=pd.read_html('https://fbref.com/en/squads/d3fd31cc/Everton-Stats')[0]
+    # d_8=pd.read_html('https://fbref.com/en/squads/fd962109/Fulham-Stats')[0]
+    # d_9=pd.read_html('https://fbref.com/en/squads/5bfb9659/Leeds-United-Stats')[0]
+    # d_10=pd.read_html('https://fbref.com/en/squads/a2d435b3/Leicester-City-Stats')[0]
+    # d_11=pd.read_html('https://fbref.com/en/squads/822bd0ba/Liverpool-Stats')[0]
+    # d_12=pd.read_html('https://fbref.com/en/squads/b8fd03ef/Manchester-City-Stats')[0]
+    # d_13=pd.read_html('https://fbref.com/en/squads/19538871/Manchester-United-Stats')[0]
+    # d_14=pd.read_html('https://fbref.com/en/squads/b2b47a98/Newcastle-United-Stats')[0]
+    # d_15=pd.read_html('https://fbref.com/en/squads/e4a775cb/Nottingham-Forest-Stats')[0]
+    # d_16=pd.read_html('https://fbref.com/en/squads/33c895d4/Southampton-Stats')[0]
+    # d_17=pd.read_html('https://fbref.com/en/squads/361ca564/Tottenham-Hotspur-Stats')[0]
+    # d_18=pd.read_html('https://fbref.com/en/squads/7c21e445/West-Ham-United-Stats')[0]
+    # d_19=pd.read_html('https://fbref.com/en/squads/8cec06e1/Wolverhampton-Wanderers-Stats')[0]
+    # full_combined_df=pd.concat([d_1,d_2,d_3,d_4,d_5,d_6,d_7,d_8,d_9,d_10,d_11,d_12,d_13,d_14,d_15,d_16,d_17,d_18,d_19])
+    # full_combined_df.to_csv('C:/Users/Darragh/Documents/Python/premier_league/fbref_xg.csv')
+
+    full_combined_df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/fbref_xg.csv',header=[0,1])
+    # https://stackoverflow.com/questions/24290297/pandas-dataframe-with-multiindex-column-merge-levels
+    full_combined_df.columns = full_combined_df.columns.map('_'.join).str.strip('|')
+    # st.write(full_combined_df.columns)
+    full_combined_df=full_combined_df.loc[:,['Unnamed: 0_level_0_Player','Unnamed: 4_level_0_MP','Playing Time_Min','Expected_xG','Expected_xA','Expected_npxG']]\
+        .rename(columns={'Unnamed: 0_level_0_Player':'full_name','Unnamed: 4_level_0_MP':'matches_played'})
+    
+    full_combined_df['full_name'] = (full_combined_df['full_name'].str.replace(' ','_')).str.lower()
+    # full_combined_df=full_combined_df [(full_combined_df['full_name']!='squad_total') | (full_combined_df['full_name']!='opponent_total')]
+    full_combined_df=full_combined_df [(full_combined_df['full_name']!='squad_total')]
+    full_combined_df=full_combined_df [(full_combined_df['full_name']!='opponent_total')]
+    full_combined_df['xg_xa_per_match']=(full_combined_df['Expected_xG']+full_combined_df['Expected_xA']) / full_combined_df['matches_played']
+    full_combined_df['week']=current_week
+    st.write('combined xg',full_combined_df[full_combined_df['full_name'].str.contains('neal')])
+    st.write('full df', full_df[full_df['full_name'].str.contains('neal')])
+
+    test_df_xg=pd.merge(full_combined_df,full_df,on=['full_name','week'],how='left')
+    st.write('test merge', test_df_xg[test_df_xg['full_name'].str.contains('neal')])
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
     # st.write('full df z', df[ (df['year']==2022) & (df['week']==3) ].sort_values(by='week_points',ascending=False))
@@ -244,7 +284,7 @@ with st.expander('Data Prep'):
     'value_ppg':"{:,.0f}",'value_rank':"{:,.0f}",'selected_rank':"{:,.0f}",'transfers_balance':"{:,.0f}",
     'net_transfers_rank':"{:,.0f}",'totals_ranked':"{:,.0f}",'ppg_38_rank':"{:,.0f}",'ppg_19_rank':"{:,.0f}",
     'year':"{:,.0f}",'totals_ranked':"{:,.0f}"}
-    st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
+    # st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
 
 with st.expander('Player Detail by Week'):
     player_names_pick=full_df['full_name'].unique()
@@ -590,18 +630,11 @@ with st.expander('Graph GK data'):
 
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
-with st.expander('fb ref'):
-    # df_excel=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/sportsref_download.csv')
-    d_1=pd.read_html('https://fbref.com/en/squads/18bb7c10/Arsenal-Stats')[0]
-    d_2=pd.read_html('https://fbref.com/en/squads/8602292d/Aston-Villa-Stats')[0]
-    d_3=pd.read_html('https://fbref.com/en/squads/4ba7cbea/Bournemouth-Stats')[0]
-    d_4=pd.read_html('https://fbref.com/en/squads/cd051869/Brentford-Stats')[0]
-    d_5=pd.read_html('https://fbref.com/en/squads/d07537b9/Brighton-and-Hove-Albion-Stats')[0]
-
-    st.write('1',d_3)
-    # st.write('2',dfa[3])
-    # st.write('3',dfa[4])
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
+# with st.expander('fb ref'):
+#     pass
+#     # st.write('2',dfa[3])
+#     # st.write('3',dfa[4])
+#     # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
 
 
 with st.expander('GW Detail with Latest Transfers'):
