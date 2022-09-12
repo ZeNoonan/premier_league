@@ -142,7 +142,28 @@ with st.expander('Data Prep'):
     @st.cache(suppress_st_warning=True)
     def combine_dataframes_new(a,b,c,d,e,f):
         return pd.concat ([a,b,c,d,e,f], axis=0,sort = True)
+    
+    @st.cache(suppress_st_warning=True)
+    def read_csv_file(x):
+        return pd.read_csv(x).drop('Unnamed: 0',axis=1)
 
+
+    xp_2023=read_csv_file('C:/Users/Darragh/Documents/Python/premier_league/raw_data_xp_2023.csv')
+    xp_2022=read_csv_file('C:/Users/Darragh/Documents/Python/premier_league/raw_data_xp_2022.csv')
+    xp_2021=read_csv_file('C:/Users/Darragh/Documents/Python/premier_league/raw_data_xp_2021.csv')
+    
+    
+    
+    # st.write('xp', xp_2023.head())
+    # st.write('data 2023', data_2023.head())
+    # https://stackoverflow.com/questions/56580926/pandas-merge-duplicating-rows-or-columns
+
+    data_2023=pd.merge(data_2023,xp_2023,how='left', indicator=False)
+    data_2022=pd.merge(data_2022,xp_2022,how='left', indicator=True)
+    data_2021=pd.merge(data_2021,xp_2021,how='left', indicator=True)
+
+    # st.write('after merge 2023', data_2023)
+    # st.write('after merge 2021', data_2021)
     # full_df = combine_dataframes(data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
     full_df = combine_dataframes_new(data_2023,data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
     # full_df = combine_dataframes_historical(data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
@@ -157,6 +178,7 @@ with st.expander('Data Prep'):
         df['Game_1'] = np.where((df['minutes'] > 0.5), 1, 0)
         df['games_2022'] = np.where((df['year'] == current_year), df['Game_1'], 0)
         df['Clean_Pts'] = np.where(df['Game_1']==1,df['week_points'], np.NaN) # setting a slice on a slice - just suppresses warning....
+        df['Clean_xP'] = np.where(df['Game_1']==1,df['xP'], np.NaN) # setting a slice on a slice - just suppresses warning....
         return df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, True, True]) # THIS IS IMPORTANT!! EWM doesn't work right unless sorted
 
 
@@ -219,7 +241,7 @@ with st.expander('Data Prep'):
 
     @st.cache(suppress_st_warning=True)
     def column_calcs_2(df):
-        df.loc[ ((df['full_name']==('aleksandar_mitrovic'))),'full_name' ] = 'aleksandar_mitrović'
+        # df.loc[ ((df['full_name']==('aleksandar_mitrovic'))),'full_name' ] = 'aleksandar_mitrović'
         df_calc=df[df['Game_1']>0].copy()
 
         df_calc['last_76_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=76,min_periods=1, center=False).sum().reset_index(0,drop=True)
@@ -232,14 +254,22 @@ with st.expander('Data Prep'):
         df_calc['last_19_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=19,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['last_19_ppg']=df_calc['last_19_points']/df_calc['last_19_games']
 
+        df_calc['last_38_xP']=df_calc.groupby(['full_name'])['Clean_xP'].rolling(window=38,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_38_xP_ppg']=df_calc['last_38_xP']/df_calc['last_38_games']
+        df_calc['last_19_xP']=df_calc.groupby(['full_name'])['Clean_xP'].rolling(window=19,min_periods=1, center=False).sum().reset_index(0,drop=True)
+        df_calc['last_19_xP_ppg']=df_calc['last_19_xP']/df_calc['last_19_games']
+
+
         df_calc['games_2022_rolling']=df_calc.groupby(['full_name'])['games_2022'].cumsum()
 
         df=pd.merge(df,df_calc,how='outer')
         df['last_76_ppg']=df['last_76_ppg'].fillna(method='ffill')
         df['last_76_games']=df['last_76_games'].fillna(method='ffill')
         df['last_38_ppg']=df['last_38_ppg'].fillna(method='ffill')
+        df['last_38_xP_ppg']=df['last_38_xP_ppg'].fillna(method='ffill')
         df['last_38_games']=df['last_38_games'].fillna(method='ffill')
         df['last_19_ppg']=df['last_19_ppg'].fillna(method='ffill')
+        df['last_19_xP_ppg']=df['last_19_xP_ppg'].fillna(method='ffill')
         df['last_19_games']=df['last_19_games'].fillna(method='ffill')
 
         df['games_2022_rolling']=df['games_2022_rolling'].fillna(method='ffill')
@@ -281,8 +311,8 @@ with st.expander('Data Prep'):
     format_mapping={'week':"{:,.0f}",'year':"{:.0f}",'minutes':"{:,.0f}",'Clean_Pts':"{:,.0f}",'last_76_ppg':"{:,.1f}",'games_total':"{:,.0f}",
     'last_76_games':"{:,.0f}",'last_76_points':"{:,.0f}",'Price':"{:,.1f}",'selected':"{:,.0f}",'last_38_ppg':"{:,.1f}",'last_38_games':"{:,.0f}",
     'last_19_games':"{:,.0f}",'last_19_ppg':"{:,.1f}",'games_2022_rolling':"{:,.0f}",'ppg_76_rank':"{:,.0f}",'total_sum_rank':"{:,.0f}",
-    'value_ppg':"{:,.0f}",'value_rank':"{:,.0f}",'selected_rank':"{:,.0f}",'transfers_balance':"{:,.0f}",
-    'net_transfers_rank':"{:,.0f}",'totals_ranked':"{:,.0f}",'ppg_38_rank':"{:,.0f}",'ppg_19_rank':"{:,.0f}",
+    'value_ppg':"{:,.0f}",'value_rank':"{:,.0f}",'selected_rank':"{:,.0f}",'transfers_balance':"{:,.0f}",'ppg_19_xP_rank':"{:,.0f}",
+    'net_transfers_rank':"{:,.0f}",'totals_ranked':"{:,.0f}",'ppg_38_rank':"{:,.0f}",'ppg_19_rank':"{:,.0f}",'ppg_38_xP_rank':"{:,.0f}",
     'year':"{:,.0f}",'totals_ranked':"{:,.0f}"}
     # st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
 
@@ -312,12 +342,14 @@ with st.expander('Player Stats Latest'):
         # only want players who played greater than a season ie 38 games big sample size
         x = x[x['games_total']>38]
         x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
+        x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
         return x
 
     def value_rank(x):
         x['total_selected']=9000000
         x['%_selected']=x['selected'] / x['total_selected']
-        x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
+        # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
+        x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
         x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
         x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
@@ -340,7 +372,8 @@ with st.expander('Player Stats Latest'):
         return x
 
     def rank_total_calc(x):
-        col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
+        # col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
+        col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
@@ -381,7 +414,7 @@ with st.expander('Player Stats Latest'):
 
 with st.expander('To run the GW analysis'):
     # st.write('this is solanke df',full_df.loc[ (full_df['full_name']==('solanke'))  ])
-    full_df.loc[ ((full_df['full_name']==('aleksandar_mitrović')) & (full_df['year']==2021)),'year' ] = 2022
+    # full_df.loc[ ((full_df['full_name']==('aleksandar_mitrović')) & (full_df['year']==2021)),'year' ] = 2022
 
 
     # full_df.loc [ (full_df['full_name']=='son_heung-min'), 'full_name' ] = 'heung-min_son'
@@ -431,7 +464,9 @@ with st.expander('To run the GW analysis'):
                 x = x[x['games_total']>min_games_played_for_calc]
                 # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
                 x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+                # x['ppg_38_xP_rank']=x.loc[:,['last_38_xP_ppg']].rank(method='dense', ascending=False)
                 x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
+                x['ppg_19_xP_rank']=x.loc[:,['last_19_xP_ppg']].rank(method='dense', ascending=False)                
                 # x['ppg_19_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
                 return x
 
@@ -440,7 +475,8 @@ with st.expander('To run the GW analysis'):
                 x['%_selected']=x['selected'] / x['total_selected']
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.75)
-                x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
+                # x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
+                x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.25) # still doesnt look right
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']) # this definitely doesn't work, crazy results
                 x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
@@ -468,10 +504,12 @@ with st.expander('To run the GW analysis'):
             def rank_calc(x):
                 # USE THIS FOR LATEST TRANSFERS IN WEEK
                 x['net_transfers_rank']=x.loc[:,['transfers_balance']].rank(method='dense', ascending=False)
+                x['net_transfers_rank_1']=x.loc[:,['transfers_balance']].rank(method='dense', ascending=False)
                 return x
 
             def rank_total_calc(x):
-                col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+                # col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+                col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
                 x['total_sum_rank']=x[col_list_1].sum(axis=1)
                 x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
                 return x
@@ -482,7 +520,7 @@ with st.expander('To run the GW analysis'):
             latest_df = rank_total_calc(latest_df)
 
             cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
-            'ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
+            'ppg_38_rank','ppg_19_rank','ppg_19_xP_rank','value_rank','net_transfers_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
             'last_76_ppg','last_19_ppg','games_total','last_38_games','selected']
             cols = cols_to_move + [col for col in latest_df if col not in cols_to_move]
             latest_df=((latest_df[cols].sort_values(by=['totals_ranked'],ascending=True)))
@@ -681,8 +719,10 @@ with st.expander('GW Detail with Latest Transfers'):
         x = x[x['games_total']>min_games_played_for_calc]
         # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
         x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
-        # x['ppg_19_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+        # x['ppg_38_xP_rank']=x.loc[:,['last_38_xP_ppg']].rank(method='dense', ascending=False)
         x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
+        x['ppg_19_xP_rank']=x.loc[:,['last_19_xP_ppg']].rank(method='dense', ascending=False)                
+        # x['ppg_19_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
         return x
 
     def value_rank(x):
@@ -703,7 +743,7 @@ with st.expander('GW Detail with Latest Transfers'):
         return x
 
     def rank_total_calc(x):
-        col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+        col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank','ppg_19_xP_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
@@ -736,7 +776,7 @@ with st.expander('GW Detail with Latest Transfers'):
     current_week_projections['year']=current_week_projections['year'].astype(int)
     current_week_projections['games_2022_rolling']=current_week_projections['games_2022_rolling'].astype(int)
     cols_to_move=['Position','Price','team','week','year','games_2022_rolling','totals_ranked','total_sum_rank',
-            'ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
+            'ppg_38_rank','ppg_19_rank','ppg_19_xP_rank','value_rank','net_transfers_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
             'last_76_ppg','last_19_ppg','games_total','last_38_games','minutes','Clean_Pts','selected']
     cols = cols_to_move + [col for col in current_week_projections if col not in cols_to_move]
     current_week_projections=current_week_projections[cols]
@@ -774,8 +814,8 @@ with st.expander('GW Graph with Latest Transfers'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('GW Graph with My Players'):
-    my_players=['jamie_vardy','kevin_de bruyne','joel_matip','trent_alexander-arnold',
-    'andrew_robertson','kieran_trippier','callum_wilson','son_heung-min','ben_chilwell']
+    my_players=['danny_welbeck','kevin_de bruyne','joel_matip','trent_alexander-arnold',
+    'andrew_robertson','kieran_trippier','callum_wilson','son_heung-min','ben_chilwell','ilkay_gundogan','andreas_pereira','josh_dasilva']
 
     # st.write(my_players_data)
     stdc_df=my_players_data[my_players_data['Team'].isin(my_players)]
