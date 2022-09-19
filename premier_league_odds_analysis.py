@@ -104,7 +104,9 @@ with st.expander('df'):
     merged_df['Away Points'] = [str(x)[2] for x in merged_df['Score']]
     merged_df['home_spread']=merged_df['Spread']
     merged_df['away_spread']=-merged_df['Spread']
+    # st.write('before match postponed', merged_df)
     merged_df=merged_df[merged_df['Notes']!='Match Postponed']
+    # st.write('after match postponed', merged_df)
     merged_df['Home Points']=merged_df['Home Points'].replace({'n':np.NaN})
     merged_df['Away Points']=merged_df['Away Points'].replace({'n':np.NaN})
     merged_df['Home Points']=pd.to_numeric(merged_df['Home Points'])
@@ -504,8 +506,9 @@ with placeholder_2.expander('Betting Slip Matches'):
         betting_matches['bet_sign_all'] = (np.where(betting_matches['total_factor']>0,1,np.where(betting_matches['total_factor']<-0,-1,0)))
         betting_matches['result_all']=betting_matches['home_cover_result'] * betting_matches['bet_sign_all']
         # st.write('testing sum of betting all result',betting_matches['result_all'].sum())
-        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','result','Spread','Opening Spread','momentum_pick',
-        'Home Points','Away Points','home_cover','away_cover']
+        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','result','Spread','Home Points','Away Points',
+        'Opening Spread','momentum_pick',
+        'home_cover','away_cover']
         cols = cols_to_move + [col for col in betting_matches if col not in cols_to_move]
         betting_matches=betting_matches[cols]
         betting_matches=betting_matches.sort_values(['Week','Date'],ascending=[True,True])
@@ -519,7 +522,7 @@ with placeholder_2.expander('Betting Slip Matches'):
     presentation_betting_matches=betting_matches.copy()
 
     # https://towardsdatascience.com/7-reasons-why-you-should-use-the-streamlit-aggrid-component-2d9a2b6e32f0
-    grid_height = st.number_input("Grid height", min_value=400, value=1550, step=100)
+    grid_height = st.number_input("Grid height", min_value=400, value=3550, step=100)
     gb = GridOptionsBuilder.from_dataframe(presentation_betting_matches)
     gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2, aggFunc='sum')
     gb.configure_column("home_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
@@ -671,7 +674,7 @@ with st.expander('Analysis of Betting Results across 1 to 5 factors'):
     # st.write('test',reset_data)
     reset_data=reset_data.pivot(index='result_all',columns='total_factor',values='winning').fillna(0)
     # st.write('look',reset_data)
-    dfBool=pd.Series(reset_data.columns.isin([3,4,5]) )
+    dfBool=pd.Series(reset_data.columns.isin([3,4,5,6,7,8]) )
     # st.write('dfbool', dfBool)
     # st.write(reset_data[reset_data.columns[dfBool]])
     # https://stackoverflow.com/questions/37391539/pandas-filter-columns-of-a-dataframe-with-bool
