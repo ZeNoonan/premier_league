@@ -25,8 +25,8 @@ with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
     # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')
 
-    dfa=pd.read_html('https://fbref.com/en/comps/12/11573/schedule/2022-2023-La-Liga-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_2022_2023.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/12/11573/schedule/2022-2023-La-Liga-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_2022_2023.csv')
     
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv',parse_dates=['Date'])
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_2022_2023.csv',parse_dates=['Date'])
@@ -488,7 +488,7 @@ with placeholder_2.expander('Betting Slip Matches'):
     presentation_betting_matches=betting_matches.copy()
 
     # https://towardsdatascience.com/7-reasons-why-you-should-use-the-streamlit-aggrid-component-2d9a2b6e32f0
-    grid_height = st.number_input("Grid height", min_value=400, value=1550, step=100)
+    grid_height = st.number_input("Grid height", min_value=400, value=3550, step=100)
     gb = GridOptionsBuilder.from_dataframe(presentation_betting_matches)
     gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
     gb.configure_column("home_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
