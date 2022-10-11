@@ -54,8 +54,8 @@ github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_p
 github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2022_2023.csv' # 2023
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
 
     df=pd.read_csv(season_list[season_picker]['scores_file'],parse_dates=['Date'])
 
@@ -506,7 +506,7 @@ with placeholder_2.expander('Betting Slip Matches'):
         betting_matches['bet_sign_all'] = (np.where(betting_matches['total_factor']>0,1,np.where(betting_matches['total_factor']<-0,-1,0)))
         betting_matches['result_all']=betting_matches['home_cover_result'] * betting_matches['bet_sign_all']
         # st.write('testing sum of betting all result',betting_matches['result_all'].sum())
-        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','result','Spread','Home Points','Away Points',
+        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','result','Spread','Home Points','Away Points','bet_sign',
         'Opening Spread','momentum_pick',
         'home_cover','away_cover']
         cols = cols_to_move + [col for col in betting_matches if col not in cols_to_move]
