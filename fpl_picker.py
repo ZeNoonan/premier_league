@@ -20,7 +20,7 @@ current_year=2022
 min_games_played_for_calc=2
 
 future_gameweek=current_week+1
-current_week=9
+current_week=10
 current_year=2023
 
 with st.expander('Data Prep'):
