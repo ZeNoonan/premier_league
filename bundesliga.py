@@ -20,8 +20,8 @@ home_point_advantage=.2
 home_adv_parameter = .3
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/20/11593/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/20/11593/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
 
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga.csv',parse_dates=['Date'])
     # dfa=pd.read_html('https://fbref.com/en/comps/20/schedule/Bundesliga-Scores-and-Fixtures')
@@ -486,7 +486,7 @@ with placeholder_2.expander('Betting Slip Matches'):
         betting_matches['bet_sign_all'] = (np.where(betting_matches['total_factor']>0,1,np.where(betting_matches['total_factor']<-0,-1,0)))
         betting_matches['result_all']=betting_matches['home_cover_result'] * betting_matches['bet_sign_all']
         # st.write('testing sum of betting all result',betting_matches['result_all'].sum())
-        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','result','Spread','Home Points','Away Points',
+        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','result','Spread','Home Points','Away Points','bet_sign',
         'Opening Spread','momentum_pick',
         'home_cover','away_cover','home_cover_result']
         cols = cols_to_move + [col for col in betting_matches if col not in cols_to_move]
