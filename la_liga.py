@@ -12,7 +12,7 @@ import seaborn as sns
 st.set_page_config(layout="wide")
 current_week=38
 finished_week=38
-number_of_factors_required=4
+number_of_factors_required=3
 # re run to get the xg
 
 home_point_advantage=.2
