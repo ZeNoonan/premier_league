@@ -16,6 +16,7 @@ st.set_page_config(layout="wide")
 
 current_week=38
 finished_week=38
+min_factor=2
 
 home_point_advantage=0.2
 home_adv_parameter = .3
@@ -54,8 +55,8 @@ github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_p
 github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2022_2023.csv' # 2023
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
 
     df=pd.read_csv(season_list[season_picker]['scores_file'],parse_dates=['Date'])
 
@@ -494,9 +495,9 @@ with placeholder_2.expander('Betting Slip Matches'):
         betting_matches['away_cover_sign']+betting_matches['power_pick']+betting_matches['momentum_pick']
 
 
-        betting_matches['bet_on'] = np.where(betting_matches['total_factor']>3,betting_matches['Home Team'],np.where(
-            betting_matches['total_factor']<-3,betting_matches['Away Team'],''))
-        betting_matches['bet_sign'] = (np.where(betting_matches['total_factor']>3,1,np.where(betting_matches['total_factor']<-3,-1,0)))
+        betting_matches['bet_on'] = np.where(betting_matches['total_factor']>min_factor,betting_matches['Home Team'],np.where(
+            betting_matches['total_factor']<-min_factor,betting_matches['Away Team'],''))
+        betting_matches['bet_sign'] = (np.where(betting_matches['total_factor']>min_factor,1,np.where(betting_matches['total_factor']<-min_factor,-1,0)))
         
         betting_matches['bet_sign'] = betting_matches['bet_sign'].astype(float)
         betting_matches['home_cover'] = betting_matches['home_cover'].astype(float)
