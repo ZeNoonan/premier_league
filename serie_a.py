@@ -9,7 +9,7 @@ import seaborn as sns
 st.set_page_config(layout="wide")
 current_week=38
 finished_week=38
-number_of_factors_required=4
+number_of_factors_required=3
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
@@ -20,10 +20,11 @@ home_adv_parameter = .3
 
 with st.expander('df'):
     # dfa=pd.read_html('https://fbref.com/en/comps/11/schedule/Serie-A-Scores-and-Fixtures')
-    # dfa=pd.read_html('https://fbref.com/en/comps/11/11611/schedule/2022-2023-Serie-A-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a_2022_2023.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/11/11611/schedule/2022-2023-Serie-A-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a_2022_2023.csv')
+    # st.write('dfa', dfa[0]) # something up with the site
     df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/serie_a_2022_2023.csv',parse_dates=['Date'])
-    
+    # st.write('df agains', df)
     df=df.dropna(subset=['Wk'])
     # df['Home']=df['Home'].astype(str).str.lower()
     # df['Away']=df['Home'].astype(str).str.lower()
@@ -52,7 +53,7 @@ with st.expander('df'):
 
     odds=concat_current_prior(odds,prior_data).drop(['xG','Score','xG.1'],axis=1)
     # st.write('odds duplicates???????', odds)
-    # st.write('df',df)
+    st.write('df',df)
     # st.write('Date type in odds',odds['Date'].dtype)
     # st.write('Date type in df',df['Date'].dtype)
     merged_df = pd.merge(df,odds,on=['Date','Home','Away'],how='outer').drop(['Day_y','Wk_x','Notes_y'],axis=1)\
@@ -77,7 +78,7 @@ with st.expander('df'):
     # csv = convert_df(data)
     # st.download_button(label="Download data as CSV",data=csv,file_name='df.csv',mime='text/csv',key='after_merge')
     # st.write(data)
-
+    st.write('is the data ok????', data)
     def spread_workings(data):
         data['home_win']=data['Home Points'] - data['Away Points']
         data['home_win'] = np.where((data['Home Points'] > data['Away Points']), 1, np.where((data['Home Points'] < data['Away Points']),-1,0))
@@ -285,7 +286,7 @@ spread_3=season_cover_3(spread_2,'cover_sign','cover')
 
 with st.expander('Turnover Graph'):
     # workings_1=spread.copy()
-    # st.write('workings any dupicates in here??',workings_1)
+    st.write('workings any dupicates in here??',workings_1)
     workings_1['xg_margin']=workings_1['xG']-workings_1['xG.1']
     workings_1['home_xg_win']=np.where(workings_1['xg_margin']>1.0,1,np.where(workings_1['xg_margin']<-1.0,-1,0))
     workings_1=workings_1.assign(result_str=workings_1['home_xg_win'].astype(str)+workings_1['home_win'].astype(str))
@@ -467,7 +468,7 @@ with placeholder_2.expander('Betting Slip Matches'):
         betting_matches['bet_sign_all'] = (np.where(betting_matches['total_factor']>0,1,np.where(betting_matches['total_factor']<-0,-1,0)))
         betting_matches['result_all']=betting_matches['home_cover_result'] * betting_matches['bet_sign_all']
         # st.write('testing sum of betting all result',betting_matches['result_all'].sum())
-        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','bet_sign','home_cover_result','result','Spread','Home Points','Away Points',
+        cols_to_move=['Week','Date','Home Team','Away Team','total_factor','bet_on','result','Spread','Home Points','Away Points','bet_sign','home_cover_result',
         'home_cover','away_cover']
         cols = cols_to_move + [col for col in betting_matches if col not in cols_to_move]
         betting_matches=betting_matches[cols]
