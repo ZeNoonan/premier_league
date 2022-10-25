@@ -825,7 +825,7 @@ with st.expander('Analysis of Factors'):
     
     total_factor_table_presentation = total_factor_table.style.format("{:.1f}", na_rep='-')
     total_factor_table_presentation = total_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     
     st.write(total_factor_table_presentation)
