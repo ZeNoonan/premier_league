@@ -17,10 +17,10 @@ future_gameweek=39
 current_week=38
 current_year=2022
 
-min_games_played_for_calc=2
+min_games_played_for_calc=1
 
 future_gameweek=current_week+1
-current_week=10
+current_week=14
 current_year=2023
 
 with st.expander('Data Prep'):
@@ -743,7 +743,7 @@ with st.expander('GW Detail with Latest Transfers'):
         return x
 
     def rank_total_calc(x):
-        col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank','ppg_19_xP_rank']
+        col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
