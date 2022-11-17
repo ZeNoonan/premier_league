@@ -11,9 +11,6 @@ import seaborn as sns
 
 st.set_page_config(layout="wide")
 
-# all backed 21 May
-# just check that the below runs with github ok
-
 current_week=38
 finished_week=38
 min_factor=2
@@ -39,24 +36,13 @@ season_list={'season_2022': {
     "prior_year_file": 'C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2020_2021.csv'}}
 
 
-# github_fbref_scores='C:/Users/Darragh/Documents/Python/premier_league/scores_2021_2022.csv' # 2022
 github_fbref_scores='C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv' # 2023
-# github_fbref_scores='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/scores.csv'
-# github_current_odds='C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2021_2022.csv'
-
-# github_current_odds='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_odds.csv'
-# github_prior_year_odds='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/prior_premier_league_odds.csv'
-# github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2020_2021.csv' #2022
 github_prior_year_odds='C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2021_2022.csv' #2023
-# x='C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2021_2022.xlsx'
-# pd.read_excel(x).to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_premier_league_odds_2021_2022.csv')
-# github_team_id='https://raw.githubusercontent.com/ZeNoonan/premier_league/main/premier_league_team_names_id.csv'
-# github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2021_2022.csv' # 2022
 github_team_id='C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id_2022_2023.csv' # 2023
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/9/11566/schedule/2022-2023-Premier-League-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/scores_2022_2023.csv')
 
     df=pd.read_csv(season_list[season_picker]['scores_file'],parse_dates=['Date'])
 
@@ -523,7 +509,7 @@ with placeholder_2.expander('Betting Slip Matches'):
     presentation_betting_matches=betting_matches.copy()
 
     # https://towardsdatascience.com/7-reasons-why-you-should-use-the-streamlit-aggrid-component-2d9a2b6e32f0
-    grid_height = st.number_input("Grid height", min_value=400, value=4550, step=100)
+    grid_height = st.number_input("Grid height", min_value=400, value=4950, step=100)
     gb = GridOptionsBuilder.from_dataframe(presentation_betting_matches)
     gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2, aggFunc='sum')
     gb.configure_column("home_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
@@ -731,6 +717,7 @@ with placeholder_1.expander('Weekly Results'):
     # df9.loc['No. of Bets Made'] = df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']
     df9.loc['PL_Bets']=df9.loc['Winning_Bets'] - df9.loc['Losing_Bets']
     df9=df9.apply(pd.to_numeric, downcast='float')
+    # st.write('df9', df9)
     graph_pl_data=df9.loc[['PL_Bets'],:].drop('grand_total',axis=1)
     graph_pl_data=graph_pl_data.stack().reset_index().drop('result',axis=1).rename(columns={0:'week_result'})
     graph_pl_data['Week']=graph_pl_data['Week'].astype(int)
@@ -740,6 +727,8 @@ with placeholder_1.expander('Weekly Results'):
     df9.loc['% Winning'] = (df9.loc['Winning_Bets'] / (df9.loc['Winning_Bets']+df9.loc['Losing_Bets'])  ).replace({'<NA>':np.NaN})
     # df9.loc['% Winning'] = ((df9.loc['1.0']+(df9.loc['0.5']/2)) / (df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']) ).replace({'<NA>':np.NaN})
     table_test=df9.copy()
+    graph_pl_data.to_csv(f'C:/Users/Darragh/Documents/Python/premier_league/premier_league_betting_result_{year}.csv')
+    # st.write('graph data', graph_pl_data)
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
     # st.write('this is df9', df9)
@@ -822,10 +811,10 @@ with st.expander('Analysis of Factors'):
     cols_to_move=['total_turnover','total_season_cover','power_ranking_success?']
     total_factor_table = total_factor_table[ cols_to_move + [ col for col in total_factor_table if col not in cols_to_move ] ]
     total_factor_table=total_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?']]
-    
+    total_factor_table.to_csv(f'C:/Users/Darragh/Documents/Python/premier_league/premier_league_factor_result_{year}.csv')
     total_factor_table_presentation = total_factor_table.style.format("{:.1f}", na_rep='-')
     total_factor_table_presentation = total_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
-        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
+        .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
             .format(formatter="{:.0f}", subset=pd.IndexSlice[['-0.5'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['-1.0'], :])
     
     st.write(total_factor_table_presentation)
@@ -1040,7 +1029,7 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     cols_to_move=['total_turnover','total_season_cover','power_diagnostic','momentum_diagnostic']
     df_factor_table_1 = df_factor_table_1[ cols_to_move + [ col for col in df_factor_table_1 if col not in cols_to_move ] ]
     df_factor_table_1=df_factor_table_1.loc[:,['total_turnover','total_season_cover','power_diagnostic','momentum_diagnostic']]
-
+    df_factor_table_1.to_csv(f'C:/Users/Darragh/Documents/Python/premier_league/premier_league_factor_diagnostic_result_{year}.csv')
     df_factor_table_1_presentation = df_factor_table_1.style.format("{:.1f}", na_rep='-')
     # df_factor_table_1_presentation = df_factor_table_1_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
     #     .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
