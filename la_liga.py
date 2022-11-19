@@ -13,7 +13,8 @@ st.set_page_config(layout="wide")
 current_week=38
 finished_week=38
 number_of_factors_required=3
-# re run to get the xg
+
+season_picker = st.selectbox("Select a season to run",('season_2022','season_2021'),index=0)
 
 home_point_advantage=.2
 home_adv_parameter = .3
@@ -21,34 +22,67 @@ home_adv_parameter = .3
 placeholder_1=st.empty()
 placeholder_2=st.empty()
 
+# test_3 = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2021_2022.xlsx',parse_dates=['Date'])
+# test_3.to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2021_2022.csv')
+
+# test_4 = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2021_2022.xlsx',parse_dates=['Date'])
+# test_4.to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_la_liga_odds_2021_2022.csv')
+
+# test_5 = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2020_2021.xlsx',parse_dates=['Date'])
+# test_5.to_csv('C:/Users/Darragh/Documents/Python/premier_league/prior_la_liga_odds_2020_2021.csv')
+
+# team_names_id_1=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2021_2022.xlsx', sheet_name='Sheet2')
+# team_names_id_1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_team_names_id_2021_2022.csv')
+
+# team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.xlsx', sheet_name='Sheet2')
+# team_names_id.to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_team_names_id_2022_2023.csv')
+
+# dfa=pd.read_html('https://fbref.com/en/comps/12/2021-2022/schedule/2021-2022-La-Liga-Scores-and-Fixtures')
+# dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_scores_2021_2022.csv')
+
+
+
+season_list={'season_2022': {
+    "odds_file": "C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.csv",
+    "scores_file": "C:/Users/Darragh/Documents/Python/premier_league/la_liga_scores_2022_2023.csv",
+    "team_id": "C:/Users/Darragh/Documents/Python/premier_league/la_liga_team_names_id_2022_2023.csv",
+    "season_year": "2022_2023",
+    "prior_year_file": "C:/Users/Darragh/Documents/Python/premier_league/prior_la_liga_odds_2021_2022.csv"},
+'season_2021' : {
+    "odds_file": "C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2021_2022.csv",
+    "scores_file": "C:/Users/Darragh/Documents/Python/premier_league/la_liga_scores_2021_2022.csv",
+    "team_id": "C:/Users/Darragh/Documents/Python/premier_league/la_liga_team_names_id_2021_2022.csv",
+    "season_year": "2021_2022",
+    "prior_year_file": 'C:/Users/Darragh/Documents/Python/premier_league/prior_la_liga_odds_2020_2021.csv'}}
+
+
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/12/11573/schedule/2022-2023-La-Liga-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_2022_2023.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/12/11573/schedule/2022-2023-La-Liga-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_scores_2022_2023.csv')
 
     # dfa=pd.read_html('https://fbref.com/en/comps/12/schedule/La-Liga-Scores-and-Fixtures')
     # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv')
     
     # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga.csv',parse_dates=['Date'])
-    df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_2022_2023.csv',parse_dates=['Date'])
-    
+
+    # df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_2022_2023.csv',parse_dates=['Date'])
+    df=pd.read_csv(season_list[season_picker]['scores_file'],parse_dates=['Date'])
+
     df=df.dropna(subset=['Wk'])
-    # df['Home']=df['Home'].astype(str).str.lower()
-    # df['Away']=df['Home'].astype(str).str.lower()
-    # st.write('duplicates in df??', df)
-    # def convert_df(df):
-    #  # IMPORTANT: Cache the conversion to prevent computation on every rerun
-    #     return df.to_csv().encode('utf-8')
-    # csv = convert_df(df)
-    # st.download_button(label="Download data as CSV",data=csv,file_name='df.csv',mime='text/csv',key='scores')
-
-
-    # st.markdown(get_table_download_link(df), unsafe_allow_html=True)
+    year=season_list[season_picker]['season_year']
 
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2021_2022.xlsx',parse_dates=['Date'])
-    odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.xlsx',parse_dates=['Date'])
-    odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.csv')
+    # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.xlsx',parse_dates=['Date'])
+    odds = pd.read_excel(f'C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_{year}.xlsx',parse_dates=['Date']) # 2023
+
+    # odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.csv')
+    odds.to_csv(f'C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_{year}.csv')
+
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2020_2021.xlsx',parse_dates=['Date'])
-    prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2021_2022.xlsx',parse_dates=['Date'])
+    
+    # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_la_liga_2021_2022.xlsx',parse_dates=['Date'])
+    prior_data=pd.read_csv(season_list[season_picker]['prior_year_file'],parse_dates=['Date'])
+
     # odds = pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_dummy.xlsx',parse_dates=['Date'])
     # prior_data=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/prior_year_dummy.xlsx',parse_dates=['Date'])
 
@@ -58,8 +92,8 @@ with st.expander('df'):
         return current_plus_prior
 
     odds=concat_current_prior(odds,prior_data).drop(['xG','Score','xG.1'],axis=1)
-    # st.write('odds duplicates???????', odds)
-    # st.write('df',df)
+    # st.write('odds merge', odds)
+    # st.write('df merge',df)
     # st.write('Date type in odds',odds['Date'].dtype)
     # st.write('Date type in df',df['Date'].dtype)
     merged_df = pd.merge(df,odds,on=['Date','Home','Away'],how='outer').drop(['Day_y','Wk_x'],axis=1)\
@@ -80,7 +114,7 @@ with st.expander('df'):
     data=merged_df
     # csv = convert_df(data)
     # st.download_button(label="Download data as CSV",data=csv,file_name='df.csv',mime='text/csv',key='after_merge')
-    # st.write(data)
+    # st.write('check home and away points looks fine',data)
 
     def spread_workings(data):
         data['home_win']=data['Home Points'] - data['Away Points']
@@ -110,7 +144,7 @@ with st.expander('df'):
 
     # st.write('is there duplicates in here', data)
     spread=spread_workings(data)
-    # st.write('is home cover working right', spread)
+    # st.write('is home points here YEP', spread)
     workings_1=spread.copy()
 
     # test_spread=spread_workings_new(data)
@@ -118,16 +152,19 @@ with st.expander('df'):
 
 
     # team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds.xlsx', sheet_name='Sheet2')
-    team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.xlsx', sheet_name='Sheet2')
+    # team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/la_liga_odds_2022_2023.xlsx', sheet_name='Sheet2')
+    team_names_id=pd.read_csv(season_list[season_picker]['team_id']).drop('Unnamed: 0',axis=1)
+
     # st.write(team_names_id)
     team_names_id=team_names_id.rename(columns={'team':'Home Team'})
-    # st.write('this is spread before merge', spread)
+    # st.write('this is spread before merge check home points', spread)
     # st.write('Date dtype', spread['Date'].dtype)
     # st.write('this is team names id before merge', team_names_id)
     odds_data=pd.merge(spread,team_names_id,on='Home Team').rename(columns={'ID':'Home ID'}).sort_values(by='Date',ascending=False)
+    # st.write('1 after merge again check home points NO',odds_data)
     team_names_id=team_names_id.rename(columns={'Home Team':'Away Team'})
     odds_data=pd.merge(odds_data,team_names_id,on='Away Team').rename(columns={'ID':'Away ID'}).sort_values(by='Date',ascending=False)
-    # st.write(odds_data)
+    # st.write('2 after merge again check home points NO',odds_data)
 
     matrix_df=odds_data.reset_index().rename(columns={'index':'unique_match_id'})
     workings_1=matrix_df.copy()
@@ -213,9 +250,10 @@ list_power_ranking=[]
 power_df=df_power.loc[:,['Week','ID','adj_spread']].copy()
 
 games_df=matrix_df.copy()
+last_gameweek=int(games_df['Week'].dropna().sort_values().unique()[-1])
 # st.write('Checking the games df', games_df[((games_df['Home ID']==24)|(games_df['Away ID']==24))])
-first=list(range(-3,35))
-last=list(range(0,38))
+first=list(range(-3,last_gameweek-3))
+last=list(range(0,last_gameweek))
 for first,last in zip(first,last):
     first_section=games_df[games_df['Week'].between(first,last)]
     full_game_matrix=games_matrix_workings(first_section)
@@ -279,7 +317,7 @@ spread_1 = season_cover_workings(matrix_df,'home_cover','away_cover','cover',0)
 spread_2=season_cover_2(spread_1,'cover')
 # st.write('spread 2 should this not be adding up to 0.5 increments for some of them', spread_2)
 spread_3=season_cover_3(spread_2,'cover_sign','cover')
-# st.write('spread 3', spread_3)
+# st.write('spread 3', spread_1)
 
 
 # turnover=spread_workings(data)
@@ -488,7 +526,7 @@ with placeholder_2.expander('Betting Slip Matches'):
     presentation_betting_matches=betting_matches.copy()
 
     # https://towardsdatascience.com/7-reasons-why-you-should-use-the-streamlit-aggrid-component-2d9a2b6e32f0
-    grid_height = st.number_input("Grid height", min_value=400, value=4550, step=100)
+    grid_height = st.number_input("Grid height", min_value=400, value=4950, step=100)
     gb = GridOptionsBuilder.from_dataframe(presentation_betting_matches)
     gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
     gb.configure_column("home_power", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=1, aggFunc='sum')
@@ -640,7 +678,7 @@ with st.expander('Analysis of Betting Results across 1 to 5 factors'):
     # st.write('test',reset_data)
     reset_data=reset_data.pivot(index='result_all',columns='total_factor',values='winning').fillna(0)
     # st.write('look',reset_data)
-    dfBool=pd.Series(reset_data.columns.isin([3,4,5]) )
+    dfBool=pd.Series(reset_data.columns.isin([3,4,5,6,7,8]) )
     # st.write('dfbool', dfBool)
     # st.write(reset_data[reset_data.columns[dfBool]])
     # https://stackoverflow.com/questions/37391539/pandas-filter-columns-of-a-dataframe-with-bool
@@ -655,6 +693,7 @@ with st.expander('Analysis of Betting Results across 1 to 5 factors'):
     reset_data['result_all']=reset_data['result_all'].astype(float).round(1).astype(str)
     reset_data=reset_data.set_index('result_all')
     reset_data.loc['Total']=reset_data.sum()
+    # st.write('problem here', reset_data)
 
     reset_data.loc['Winning_Bets']=(reset_data.loc['1.0']+(reset_data.loc['0.5']/2))
     reset_data.loc['Losing_Bets']=(reset_data.loc['-1.0']+(reset_data.loc['-0.5']/2))
@@ -704,6 +743,7 @@ with placeholder_1.expander('Weekly Results'):
     # st.write('issue', df9)
     df9.loc['% Winning'] = (df9.loc['Winning_Bets'] / (df9.loc['Winning_Bets']+df9.loc['Losing_Bets'])  ).replace({'<NA>':np.NaN})
     # df9.loc['% Winning'] = ((df9.loc['1.0']+(df9.loc['0.5']/2)) / (df9.loc['1.0']+(df9.loc['0.5']/2)+(df9.loc['-0.5']/2) + df9.loc['-1.0']) ).replace({'<NA>':np.NaN})
+    graph_pl_data.to_csv(f'C:/Users/Darragh/Documents/Python/premier_league/la_liga_betting_result_{year}.csv')
     table_test=df9.copy()
     # https://stackoverflow.com/questions/64428836/use-pandas-style-to-format-index-rows-of-dataframe
     df9 = df9.style.format("{:.1f}", na_rep='-')
@@ -787,7 +827,7 @@ with st.expander('Analysis of Factors'):
     cols_to_move=['total_turnover','total_season_cover','power_ranking_success?']
     total_factor_table = total_factor_table[ cols_to_move + [ col for col in total_factor_table if col not in cols_to_move ] ]
     total_factor_table=total_factor_table.loc[:,['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?']]
-    
+    total_factor_table.to_csv(f'C:/Users/Darragh/Documents/Python/premier_league/la_liga_factor_result_{year}.csv')
     total_factor_table_presentation = total_factor_table.style.format("{:.1f}", na_rep='-')
     total_factor_table_presentation = total_factor_table_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :])
     
@@ -1005,7 +1045,7 @@ with st.expander('Checking Performance where Total Factor = 2 or 3:  Additional 
     cols_to_move=['total_turnover','total_season_cover','power_diagnostic','momentum_diagnostic']
     df_factor_table_1 = df_factor_table_1[ cols_to_move + [ col for col in df_factor_table_1 if col not in cols_to_move ] ]
     df_factor_table_1=df_factor_table_1.loc[:,['total_turnover','total_season_cover','power_diagnostic','momentum_diagnostic']]
-
+    df_factor_table_1.to_csv(f'C:/Users/Darragh/Documents/Python/premier_league/la_liga_factor_diagnostic_result_{year}.csv')
     df_factor_table_1_presentation = df_factor_table_1.style.format("{:.1f}", na_rep='-')
     # df_factor_table_1_presentation = df_factor_table_1_presentation.format(formatter="{:.1%}", subset=pd.IndexSlice[['% Winning'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['1.0'], :]) \
     #     .format(formatter="{:.0f}", subset=pd.IndexSlice[['0.0'], :]).format(formatter="{:.0f}", subset=pd.IndexSlice[['0.5'], :]) \
