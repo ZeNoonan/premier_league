@@ -99,7 +99,7 @@ with st.expander('df'):
     # csv = convert_df(data)
     # st.download_button(label="Download data as CSV",data=csv,file_name='df.csv',mime='text/csv',key='after_merge')
     # st.write(data)
-    st.write('is the data ok????', data)
+    # st.write('is the data ok????', data)
     def spread_workings(data):
         data['home_win']=data['Home Points'] - data['Away Points']
         data['home_win'] = np.where((data['Home Points'] > data['Away Points']), 1, np.where((data['Home Points'] < data['Away Points']),-1,0))
@@ -126,9 +126,9 @@ with st.expander('df'):
     #     data['home_cover']=data['first_spread']+data['second_spread']
     #     return data
 
-    st.write('is there duplicates in here', data)
+    # st.write('is there duplicates in here', data)
     spread=spread_workings(data)
-    st.write('is there duplicate cols in here', spread)
+    # st.write('is there duplicate cols in here', spread)
     workings_1=spread.copy()
 
     # test_spread=spread_workings_new(data)
@@ -313,7 +313,7 @@ spread_3=season_cover_3(spread_2,'cover_sign','cover')
 
 with st.expander('Turnover Graph'):
     # workings_1=spread.copy()
-    st.write('workings any dupicates in here??',workings_1)
+    # st.write('workings any dupicates in here??',workings_1)
     workings_1['xg_margin']=workings_1['xG']-workings_1['xG.1']
     workings_1['home_xg_win']=np.where(workings_1['xg_margin']>1.0,1,np.where(workings_1['xg_margin']<-1.0,-1,0))
     workings_1=workings_1.assign(result_str=workings_1['home_xg_win'].astype(str)+workings_1['home_win'].astype(str))
@@ -673,7 +673,7 @@ with st.expander('Analysis of Betting Results across 1 to 5 factors'):
     reset_data['result_all']=reset_data['result_all'].astype(float).round(1).astype(str)
     reset_data=reset_data.set_index('result_all')
     reset_data.loc['Total']=reset_data.sum()
-    st.write('reset line 669', reset_data)
+    # st.write('reset line 669', reset_data)
     reset_data.loc['Winning_Bets']=(reset_data.loc['1.0']+(reset_data.loc['0.5']/2))
     reset_data.loc['Losing_Bets']=(reset_data.loc['-1.0']+(reset_data.loc['-0.5']/2))
     reset_data.loc['No. of Bets Made'] = reset_data.loc['1.0']+(reset_data.loc['0.5']/2)+(reset_data.loc['-0.5']/2) + reset_data.loc['-1.0']
