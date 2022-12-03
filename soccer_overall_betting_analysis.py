@@ -32,9 +32,26 @@ factor_serie_a_2022_2023,factor_serie_a_2021_2022,factor_bundesliga_2022_2023,fa
 # pivot table on dataframe
 df_pivot=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?'],index=['index','season'],aggfunc=np.sum)
 df_pivot_1=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?'],index=['index'],aggfunc=np.sum)
+df_pivot_2=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?'],index=['index','league'],aggfunc=np.sum)
+df_pivot_3=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?'],index=['index','league','season'],aggfunc=np.sum)
 
 df_pivot.loc[('% Winning',2022)] = (df_pivot.loc[('Winning_Bets',2022)] / (df_pivot.loc[('Winning_Bets',2022)]+df_pivot.loc[('Losing_Bets',2022)])  )
 df_pivot.loc[('% Winning',2023)] = (df_pivot.loc[('Winning_Bets',2023)] / (df_pivot.loc[('Winning_Bets',2023)]+df_pivot.loc[('Losing_Bets',2023)])  )
+df_pivot_2.loc[('% Winning','bundesliga')] = (df_pivot_2.loc[('Winning_Bets','bundesliga')] / (df_pivot_2.loc[('Winning_Bets','bundesliga')]+df_pivot_2.loc[('Losing_Bets','bundesliga')])  )
+df_pivot_2.loc[('% Winning','la_liga')] = (df_pivot_2.loc[('Winning_Bets','la_liga')] / (df_pivot_2.loc[('Winning_Bets','la_liga')]+df_pivot_2.loc[('Losing_Bets','la_liga')])  )
+df_pivot_2.loc[('% Winning','premier_league')] = (df_pivot_2.loc[('Winning_Bets','premier_league')] / (df_pivot_2.loc[('Winning_Bets','premier_league')]+df_pivot_2.loc[('Losing_Bets','premier_league')])  )
+df_pivot_2.loc[('% Winning','serie_a')] = (df_pivot_2.loc[('Winning_Bets','serie_a')] / (df_pivot_2.loc[('Winning_Bets','serie_a')]+df_pivot_2.loc[('Losing_Bets','serie_a')])  )
+
+df_pivot_3.loc[('% Winning','bundesliga',2022)] = (df_pivot_3.loc[('Winning_Bets','bundesliga',2022)] / (df_pivot_3.loc[('Winning_Bets','bundesliga',2022)]+df_pivot_3.loc[('Losing_Bets','bundesliga',2022)])  )
+df_pivot_3.loc[('% Winning','bundesliga',2023)] = (df_pivot_3.loc[('Winning_Bets','bundesliga',2023)] / (df_pivot_3.loc[('Winning_Bets','bundesliga',2023)]+df_pivot_3.loc[('Losing_Bets','bundesliga',2023)])  )
+df_pivot_3.loc[('% Winning','premier_league',2022)] = (df_pivot_3.loc[('Winning_Bets','premier_league',2022)] / (df_pivot_3.loc[('Winning_Bets','premier_league',2022)]+df_pivot_3.loc[('Losing_Bets','premier_league',2022)])  )
+df_pivot_3.loc[('% Winning','premier_league',2023)] = (df_pivot_3.loc[('Winning_Bets','premier_league',2023)] / (df_pivot_3.loc[('Winning_Bets','premier_league',2023)]+df_pivot_3.loc[('Losing_Bets','premier_league',2023)])  )
+
+
+
+
 df_pivot_1.loc['% Winning'] = (df_pivot_1.loc['Winning_Bets'] / (df_pivot_1.loc['Winning_Bets']+df_pivot_1.loc['Losing_Bets'])  )
 st.write(df_pivot)
 st.write(df_pivot_1)
+st.write(df_pivot_2)
+st.write(df_pivot_3)
