@@ -18,7 +18,7 @@ def read_file(file,league='la_liga',season=2023):
 factor_la_liga_2022_2023=read_file('C:/Users/Darragh/Documents/Python/premier_league/la_liga_factor_result_2022_2023.csv','la_liga',2023)
 factor_la_liga_2021_2022=read_file('C:/Users/Darragh/Documents/Python/premier_league/la_liga_factor_result_2021_2022.csv','la_liga',2022)
 factor_premier_league_2021_2022=read_file('C:/Users/Darragh/Documents/Python/premier_league/premier_league_factor_result_2021_2022.csv','premier_league',2022)
-factor_premier_league_2022_2023=read_file('C:/Users/Darragh/Documents/Python/premier_league/premier_league_factor_result_2021_2022.csv','premier_league',2023)
+factor_premier_league_2022_2023=read_file('C:/Users/Darragh/Documents/Python/premier_league/premier_league_factor_result_2022_2023.csv','premier_league',2023)
 factor_serie_a_2022_2023=read_file('C:/Users/Darragh/Documents/Python/premier_league/serie_a_factor_result_2022_2023.csv','serie_a',2023)
 factor_serie_a_2021_2022=read_file('C:/Users/Darragh/Documents/Python/premier_league/serie_a_factor_result_2021_2022.csv','serie_a',2022)
 factor_bundesliga_2022_2023=read_file('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_factor_result_2022_2023.csv','bundesliga',2023)
