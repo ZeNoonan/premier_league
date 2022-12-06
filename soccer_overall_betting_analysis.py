@@ -30,10 +30,10 @@ factor_serie_a_2022_2023,factor_serie_a_2021_2022,factor_bundesliga_2022_2023,fa
 
 # st.write(combined_df)
 # pivot table on dataframe
-df_pivot=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?'],index=['index','season'],aggfunc=np.sum)
-df_pivot_1=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?'],index=['index'],aggfunc=np.sum)
-df_pivot_2=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?'],index=['index','league'],aggfunc=np.sum)
-df_pivot_3=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?'],index=['index','league','season'],aggfunc=np.sum)
+df_pivot=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?'],index=['index','season'],aggfunc=np.sum)
+df_pivot_1=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?'],index=['index'],aggfunc=np.sum)
+df_pivot_2=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?'],index=['index','league'],aggfunc=np.sum)
+df_pivot_3=pd.pivot_table(combined_df,values=['total_turnover','total_season_cover','power_ranking_success?','momentum_ranking_success?'],index=['index','league','season'],aggfunc=np.sum)
 
 df_pivot.loc[('% Winning',2022)] = (df_pivot.loc[('Winning_Bets',2022)] / (df_pivot.loc[('Winning_Bets',2022)]+df_pivot.loc[('Losing_Bets',2022)])  )
 df_pivot.loc[('% Winning',2023)] = (df_pivot.loc[('Winning_Bets',2023)] / (df_pivot.loc[('Winning_Bets',2023)]+df_pivot.loc[('Losing_Bets',2023)])  )
