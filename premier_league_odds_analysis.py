@@ -141,8 +141,10 @@ with st.expander('df'):
 
     # team_names_id=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league.xlsx', sheet_name='Sheet2')
     # team_names_id.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_team_names_id.csv')
-    team_names_id=pd.read_csv(github_team_id)
     
+    # team_names_id=pd.read_csv(github_team_id)
+    team_names_id=pd.read_csv(season_list[season_picker]['team_id'])
+
     # st.write(team_names_id)
     team_names_id=team_names_id.rename(columns={'team':'Home Team'})
     # st.write('this is spread before merge', spread)
@@ -676,7 +678,7 @@ with st.expander('Analysis of Betting Results across 1 to 5 factors'):
     reset_data['result_all']=reset_data['result_all'].astype(float).round(1).astype(str)
     reset_data=reset_data.set_index('result_all')
     reset_data.loc['Total']=reset_data.sum()
-
+    
     reset_data.loc['Winning_Bets']=(reset_data.loc['1.0']+(reset_data.loc['0.5']/2))
     reset_data.loc['Losing_Bets']=(reset_data.loc['-1.0']+(reset_data.loc['-0.5']/2))
     reset_data.loc['No. of Bets Made'] = reset_data.loc['1.0']+(reset_data.loc['0.5']/2)+(reset_data.loc['-0.5']/2) + reset_data.loc['-1.0']
