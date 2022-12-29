@@ -342,6 +342,7 @@ with st.expander('Player Stats Latest'):
         # only want players who played greater than a season ie 38 games big sample size
         x = x[x['games_total']>38]
         x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
+        x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
         x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
         return x
 
@@ -372,8 +373,8 @@ with st.expander('Player Stats Latest'):
         return x
 
     def rank_total_calc(x):
-        # col_list_1=['ppg_76_rank','value_rank','net_transfers_rank']
-        col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
+        col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+        # col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
@@ -508,8 +509,8 @@ with st.expander('To run the GW analysis'):
                 return x
 
             def rank_total_calc(x):
-                # col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
-                col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
+                col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+                # col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
                 x['total_sum_rank']=x[col_list_1].sum(axis=1)
                 x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
                 return x
@@ -743,7 +744,8 @@ with st.expander('GW Detail with Latest Transfers'):
         return x
 
     def rank_total_calc(x):
-        col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
+        # col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
+        col_list_1=['ppg_19_rank','ppg_38_rank','value_rank','net_transfers_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
