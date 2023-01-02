@@ -308,6 +308,7 @@ with st.expander('Data Prep'):
     full_df=full_df.sort_values(by=['full_name', 'year', 'week'], ascending=[True, False, False])
     full_df=(full_df[cols]).sort_values(by=['full_name', 'year', 'week','games_2022_rolling'], ascending=[True, False, False,False])
     # st.write(full_df[full_df['full_name'].str.contains('bruno miguel')])
+    full_df.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_data_fpl.csv')
     format_mapping={'week':"{:,.0f}",'year':"{:.0f}",'minutes':"{:,.0f}",'Clean_Pts':"{:,.0f}",'last_76_ppg':"{:,.1f}",'games_total':"{:,.0f}",
     'last_76_games':"{:,.0f}",'last_76_points':"{:,.0f}",'Price':"{:,.1f}",'selected':"{:,.0f}",'last_38_ppg':"{:,.1f}",'last_38_games':"{:,.0f}",
     'last_19_games':"{:,.0f}",'last_19_ppg':"{:,.1f}",'games_2022_rolling':"{:,.0f}",'ppg_76_rank':"{:,.0f}",'total_sum_rank':"{:,.0f}",
