@@ -20,7 +20,7 @@ current_year=2022
 min_games_played_for_calc=1
 
 future_gameweek=current_week+1
-current_week=17
+current_week=18
 current_year=2023
 
 with st.expander('Data Prep'):
@@ -253,6 +253,11 @@ with st.expander('Data Prep'):
         df_calc['last_19_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=19,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['last_19_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=19,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['last_19_ppg']=df_calc['last_19_points']/df_calc['last_19_games']
+        df_calc['expo']=df_calc['Clean_Pts'].ewm(alpha=0.06, adjust=False).mean()
+        weights_1 = np.array([0.125,0.25,0.5,1])
+        sum_weights_1 = np.sum(weights_1)
+        df_calc['Weighted_ma_AB_4'] = (df_calc['Clean_Pts'].fillna(0).rolling(window=len(weights_1), center=False)\
+        .apply(lambda x: np.sum(weights_1*x) / sum_weights_1, raw=False)) # raw=False
 
         df_calc['last_38_xP']=df_calc.groupby(['full_name'])['Clean_xP'].rolling(window=38,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['last_38_xP_ppg']=df_calc['last_38_xP']/df_calc['last_38_games']
@@ -266,6 +271,8 @@ with st.expander('Data Prep'):
         df['last_76_ppg']=df['last_76_ppg'].fillna(method='ffill')
         df['last_76_games']=df['last_76_games'].fillna(method='ffill')
         df['last_38_ppg']=df['last_38_ppg'].fillna(method='ffill')
+        df['expo']=df['expo'].fillna(method='ffill')
+        df['Weighted_ma_AB_4']=df['Weighted_ma_AB_4'].fillna(method='ffill')
         df['last_38_xP_ppg']=df['last_38_xP_ppg'].fillna(method='ffill')
         df['last_38_games']=df['last_38_games'].fillna(method='ffill')
         df['last_19_ppg']=df['last_19_ppg'].fillna(method='ffill')
@@ -314,7 +321,7 @@ with st.expander('Data Prep'):
     'last_19_games':"{:,.0f}",'last_19_ppg':"{:,.1f}",'games_2022_rolling':"{:,.0f}",'ppg_76_rank':"{:,.0f}",'total_sum_rank':"{:,.0f}",
     'value_ppg':"{:,.0f}",'value_rank':"{:,.0f}",'selected_rank':"{:,.0f}",'transfers_balance':"{:,.0f}",'ppg_19_xP_rank':"{:,.0f}",
     'net_transfers_rank':"{:,.0f}",'totals_ranked':"{:,.0f}",'ppg_38_rank':"{:,.0f}",'ppg_19_rank':"{:,.0f}",'ppg_38_xP_rank':"{:,.0f}",
-    'year':"{:,.0f}",'totals_ranked':"{:,.0f}"}
+    'year':"{:,.0f}",'totals_ranked':"{:,.0f}",'expo_rank':"{:,.0f}",'%_selected':"{:,.2f}",'Weighted_ma_AB_4':"{:,.1f}",'Weighted_ma_AB_4_rank':"{:,.0f}"}
     # st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
 
 with st.expander('Player Detail by Week'):
@@ -344,6 +351,9 @@ with st.expander('Player Stats Latest'):
         x = x[x['games_total']>38]
         x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
         x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+        x['expo_rank']=x.loc[:,['expo']].rank(method='dense', ascending=False)
+        # 'Weighted_ma_AB_4'
+        x['Weighted_ma_AB_4_rank']=x.loc[:,['Weighted_ma_AB_4']].rank(method='dense', ascending=False)
         x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
         return x
 
@@ -351,7 +361,10 @@ with st.expander('Player Stats Latest'):
         x['total_selected']=9000000
         x['%_selected']=x['selected'] / x['total_selected']
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
-        x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
+        # x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
+        # x['value_ppg']=x['expo']/(x['%_selected']+0.5)
+        # 'Weighted_ma_AB_4'
+        x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
         x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
         x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
@@ -374,7 +387,9 @@ with st.expander('Player Stats Latest'):
         return x
 
     def rank_total_calc(x):
-        col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+        # col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+        # col_list_1=['expo_rank','value_rank','net_transfers_rank']
+        col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank']
         # col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
@@ -466,6 +481,8 @@ with st.expander('To run the GW analysis'):
                 x = x[x['games_total']>min_games_played_for_calc]
                 # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
                 x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+                # x['expo_rank']=x.loc[:,['expo']].rank(method='dense', ascending=False)
+                x['Weighted_ma_AB_4_rank']=x.loc[:,['Weighted_ma_AB_4']].rank(method='dense', ascending=False)
                 # x['ppg_38_xP_rank']=x.loc[:,['last_38_xP_ppg']].rank(method='dense', ascending=False)
                 x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
                 x['ppg_19_xP_rank']=x.loc[:,['last_19_xP_ppg']].rank(method='dense', ascending=False)                
@@ -478,7 +495,10 @@ with st.expander('To run the GW analysis'):
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.75)
                 # x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
-                x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
+                # x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
+                # x['value_ppg']=x['expo']/(x['%_selected']+0.5)
+                # Weighted_ma_AB_4
+                x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.25) # still doesnt look right
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']) # this definitely doesn't work, crazy results
                 x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
@@ -510,7 +530,10 @@ with st.expander('To run the GW analysis'):
                 return x
 
             def rank_total_calc(x):
-                col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+                # col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
+                # col_list_1=['expo_rank','value_rank','net_transfers_rank']
+                # Weighted_ma_AB_4
+                col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank']
                 # col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
                 x['total_sum_rank']=x[col_list_1].sum(axis=1)
                 x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
@@ -536,6 +559,8 @@ with st.expander('To run the GW analysis'):
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_value.csv')
         # df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_week_1.csv')
         df1.to_csv('C:/Users/Darragh/Documents/Python/premier_league/gw_analysis_to_date_2023.csv')
+
+        # THIS IS THE DRIVER OF THE HISTORICAL NUMBERS SO ANY CHANGE HERE REFLECTED IN HISTORICAL
         
         return df1
     run_gw_analysis()
@@ -721,6 +746,9 @@ with st.expander('GW Detail with Latest Transfers'):
         x = x[x['games_total']>min_games_played_for_calc]
         # x['ppg_76_rank']=x.loc[:,['last_76_ppg']].rank(method='dense', ascending=False)
         x['ppg_38_rank']=x.loc[:,['last_38_ppg']].rank(method='dense', ascending=False)
+        x['expo_rank']=x.loc[:,['expo']].rank(method='dense', ascending=False)
+        # Weighted_ma_AB_4
+        x['Weighted_ma_AB_4_rank']=x.loc[:,['Weighted_ma_AB_4']].rank(method='dense', ascending=False)
         # x['ppg_38_xP_rank']=x.loc[:,['last_38_xP_ppg']].rank(method='dense', ascending=False)
         x['ppg_19_rank']=x.loc[:,['last_19_ppg']].rank(method='dense', ascending=False)
         x['ppg_19_xP_rank']=x.loc[:,['last_19_xP_ppg']].rank(method='dense', ascending=False)                
@@ -732,7 +760,10 @@ with st.expander('GW Detail with Latest Transfers'):
         x['%_selected']=x['selected'] / x['total_selected']
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.75)
-        x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
+        # x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
+        # x['value_ppg']=x['expo']/(x['%_selected']+0.5)
+        # Weighted_ma_AB_4
+        x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.25) # still doesnt look right
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']) # this definitely doesn't work, crazy results
         x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
@@ -746,7 +777,10 @@ with st.expander('GW Detail with Latest Transfers'):
 
     def rank_total_calc(x):
         # col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
-        col_list_1=['ppg_19_rank','ppg_38_rank','value_rank','net_transfers_rank']
+        # col_list_1=['ppg_19_rank','ppg_38_rank','value_rank','net_transfers_rank']
+        # col_list_1=['expo_rank','value_rank','net_transfers_rank']
+        # Weighted_ma_AB_4
+        col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
@@ -779,7 +813,7 @@ with st.expander('GW Detail with Latest Transfers'):
     current_week_projections['year']=current_week_projections['year'].astype(int)
     current_week_projections['games_2022_rolling']=current_week_projections['games_2022_rolling'].astype(int)
     cols_to_move=['Position','Price','team','week','year','games_2022_rolling','totals_ranked','total_sum_rank',
-            'ppg_38_rank','ppg_19_rank','ppg_19_xP_rank','value_rank','net_transfers_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
+            'Weighted_ma_AB_4_rank','%_selected','value_rank','net_transfers_rank','Weighted_ma_AB_4','ppg_38_rank','ppg_19_rank','ppg_19_xP_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
             'last_76_ppg','last_19_ppg','games_total','last_38_games','minutes','Clean_Pts','selected']
     cols = cols_to_move + [col for col in current_week_projections if col not in cols_to_move]
     current_week_projections=current_week_projections[cols]
@@ -809,6 +843,7 @@ with st.expander('GW Graph with Latest Transfers'):
     my_players_data=stdc_df.copy()
     stdc_pivot=pd.pivot_table(stdc_df,index='Team', columns='Week')
     stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
+    # stdc_df.to_csv('C:/Users/Darragh/Documents/Python/premier_league/fpl_picker_02_01_23.csv')
     chart_cover= alt.Chart(stdc_df).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
     alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
     # https://altair-viz.github.io/gallery/layered_heatmap_text.html
@@ -817,8 +852,8 @@ with st.expander('GW Graph with Latest Transfers'):
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 with st.expander('GW Graph with My Players'):
-    my_players=['danny_welbeck','kevin_de bruyne','joel_matip','trent_alexander-arnold',
-    'andrew_robertson','kieran_trippier','callum_wilson','son_heung-min','ben_chilwell','ilkay_gundogan','andreas_pereira','josh_dasilva']
+    my_players=['eddie_nketiah','kevin_de bruyne','harry_kane','erling_haaland',
+    'marcus_rashford','manuel_akanji','kepa_arrizabalaga','miguel_almirón rejala','fabian_schär','ben_davies','andreas_pereira','william_saliba','trevoh_chalobah']
 
     # st.write(my_players_data)
     stdc_df=my_players_data[my_players_data['Team'].isin(my_players)]
