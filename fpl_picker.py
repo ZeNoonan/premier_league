@@ -193,6 +193,8 @@ with st.expander('Data Prep'):
     full_df.loc [ (full_df['full_name']=='diogo_jota'), 'full_name' ] = 'diogo_teixeira da silva'
     full_df.loc [ (full_df['full_name']=='emerson aparecido_leite de souza junior'), 'full_name' ] = 'emerson_leite de souza junior'
     full_df.loc [ (full_df['full_name']=='josé diogo_dalot teixeira'), 'full_name' ] = 'diogo_dalot teixeira'
+    full_df.loc [ (full_df['full_name']=='miguel_almirón'), 'full_name' ] = 'miguel_almirón rejala'
+    full_df.loc [ (full_df['full_name']=='aleksandar_mitrovic'), 'full_name' ] = 'aleksandar_mitrović'
     # st.write('whwere is chil', full_df[full_df['full_name'].str.contains('martinel')])
 
     # d_1=pd.read_html('https://fbref.com/en/squads/18bb7c10/Arsenal-Stats')[0]
@@ -238,12 +240,14 @@ with st.expander('Data Prep'):
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
     # st.write('full df z', df[ (df['year']==2022) & (df['week']==3) ].sort_values(by='week_points',ascending=False))
+    df=df.sort_values(by=['full_name','year','week'],ascending=True)
+    st.write('sort', df)
 
     @st.cache(suppress_st_warning=True)
     def column_calcs_2(df):
         # df.loc[ ((df['full_name']==('aleksandar_mitrovic'))),'full_name' ] = 'aleksandar_mitrović'
         df_calc=df[df['Game_1']>0].copy()
-
+        df_calc=df_calc.sort_values(by=['full_name','year','week'],ascending=True)
         df_calc['last_76_games']=df_calc.groupby(['full_name'])['Game_1'].rolling(window=76,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['last_76_points']=df_calc.groupby(['full_name'])['Clean_Pts'].rolling(window=76,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['last_76_ppg']=df_calc['last_76_points']/df_calc['last_76_games']
@@ -256,8 +260,11 @@ with st.expander('Data Prep'):
         df_calc['expo']=df_calc['Clean_Pts'].ewm(alpha=0.06, adjust=False).mean()
         weights_1 = np.array([0.125,0.25,0.5,1])
         sum_weights_1 = np.sum(weights_1)
-        df_calc['Weighted_ma_AB_4'] = (df_calc['Clean_Pts'].fillna(0).rolling(window=len(weights_1), center=False)\
-        .apply(lambda x: np.sum(weights_1*x) / sum_weights_1, raw=False)) # raw=False
+        df_calc['Weighted_ma_AB_4'] = df_calc.groupby(['full_name'])['Clean_Pts'].apply(lambda x: x.rolling(window=len(weights_1), center=False)\
+            .apply(lambda x: np.sum(weights_1*x) / sum_weights_1, raw=False))
+        
+        # df_calc['Weighted_ma_AB_4'] = (df_calc['Clean_Pts'].fillna(0).rolling(window=len(weights_1), center=False)\
+        # .apply(lambda x: np.sum(weights_1*x) / sum_weights_1, raw=False)) # raw=False
 
         df_calc['last_38_xP']=df_calc.groupby(['full_name'])['Clean_xP'].rolling(window=38,min_periods=1, center=False).sum().reset_index(0,drop=True)
         df_calc['last_38_xP_ppg']=df_calc['last_38_xP']/df_calc['last_38_games']
@@ -272,7 +279,8 @@ with st.expander('Data Prep'):
         df['last_76_games']=df['last_76_games'].fillna(method='ffill')
         df['last_38_ppg']=df['last_38_ppg'].fillna(method='ffill')
         df['expo']=df['expo'].fillna(method='ffill')
-        df['Weighted_ma_AB_4']=df['Weighted_ma_AB_4'].fillna(method='ffill')
+        # df['Weighted_ma_AB_4']=df['Weighted_ma_AB_4'].fillna(method='ffill')
+        df=df.dropna(subset=['Weighted_ma_AB_4'])
         df['last_38_xP_ppg']=df['last_38_xP_ppg'].fillna(method='ffill')
         df['last_38_games']=df['last_38_games'].fillna(method='ffill')
         df['last_19_ppg']=df['last_19_ppg'].fillna(method='ffill')
@@ -306,7 +314,8 @@ with st.expander('Data Prep'):
     # 'games_total','last_38_games','last_38_points','bps','bonus','player_id','ict_index',
     # 'opponent_team','selected','transfers_in','transfers_out']
 
-    cols_to_move=['full_name','Position','Game_1','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
+    cols_to_move=['full_name','Position','Game_1','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','Weighted_ma_AB_4',
+    'last_76_ppg','last_38_ppg','last_19_ppg','games_total','last_38_games',
     'selected']
 
     cols = cols_to_move + [col for col in full_df if col not in cols_to_move]
@@ -326,9 +335,10 @@ with st.expander('Data Prep'):
 
 with st.expander('Player Detail by Week'):
     player_names_pick=full_df['full_name'].unique()
-    names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=0)
+    # st.write('player', player_names_pick)
+    names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=370)
     player_selected_detail_by_week = full_df[full_df['full_name']==names_selected_pick]
-    st.write(player_selected_detail_by_week.style.format(format_mapping))
+    st.write(player_selected_detail_by_week.sort_values(by=['year','week']).style.format(format_mapping))
 
 
 
@@ -839,7 +849,15 @@ with st.expander('GW Graph with Latest Transfers'):
     # st.write('should gw 1 is haaland in here', merge_historical_stdc_df[merge_historical_stdc_df['Team'].str.contains('haal')])
     # st.write('should be gw2 is haaland in here', current_data_week_df[current_data_week_df['Team'].str.contains('haal')])
     stdc_df=pd.concat([merge_historical_stdc_df,current_data_week_df])
-    stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
+    stdc_df=stdc_df.sort_values(by=['Team','Week']).reset_index(drop=True)
+    # st.write('stdf', stdc_df.head())
+    # stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
+    stdc_df['average'] = stdc_df.groupby('Team')['cover'].transform(lambda x: x.rolling(window=4, min_periods=1).mean())
+    # stdc_df['average']=stdc_df.groupby('Team').tail(4).groupby('Team')['cover'].mean() # didn't work
+    
+    # get last value
+    stdc_df['last']=stdc_df.groupby('Team').apply(lambda x: x.tail(1))
+    st.write('stdf df', stdc_df)
     my_players_data=stdc_df.copy()
     stdc_pivot=pd.pivot_table(stdc_df,index='Team', columns='Week')
     stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
