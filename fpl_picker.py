@@ -850,36 +850,91 @@ with st.expander('GW Graph with Latest Transfers'):
     # st.write('should be gw2 is haaland in here', current_data_week_df[current_data_week_df['Team'].str.contains('haal')])
     stdc_df=pd.concat([merge_historical_stdc_df,current_data_week_df])
     stdc_df=stdc_df.sort_values(by=['Team','Week']).reset_index(drop=True)
-    # st.write('stdf', stdc_df.head())
-    # stdc_df['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
+    stdc_df_1=stdc_df.copy()
+    stdc_df_2=stdc_df.copy()
+    stdc_df_1['average']=stdc_df.groupby('Team')['cover'].transform(np.mean)
     stdc_df['average'] = stdc_df.groupby('Team')['cover'].transform(lambda x: x.rolling(window=4, min_periods=1).mean())
     # stdc_df['average']=stdc_df.groupby('Team').tail(4).groupby('Team')['cover'].mean() # didn't work
     
     # get last value
-    stdc_df['last']=stdc_df.groupby('Team').apply(lambda x: x.tail(1))
-    st.write('stdf df', stdc_df)
-    my_players_data=stdc_df.copy()
+    # stdc_df['last']=stdc_df.groupby('Team').transform(lambda x: x.tail(1))
+    # st.write('stdf df', stdc_df)
+    weights_1 = np.array([0.125,0.25,0.5,1])
+    sum_weights_1 = np.sum(weights_1)
+    stdc_df_2['average'] = stdc_df_2.groupby(['Team'])['cover'].apply(lambda x: x.rolling(window=len(weights_1), center=False)\
+        .apply(lambda x: np.sum(weights_1*x) / sum_weights_1, raw=False))
+    # st.write('stdf df', stdc_df [stdc_df['Team'].str.contains('luke_shaw')] )
+    stdc_my_players=stdc_df_2.copy()
+    def clean_df(stdc_df, select_how_many_players=10):
+        slice_df=stdc_df.groupby('Team').tail(1).loc[:,['Team','average']].rename(columns={'average':'last'})
+        stdc_df=pd.merge(stdc_df,slice_df,how='left',on='Team').drop('average',axis=1).rename(columns={'last':'average'})
+        stdc_df=stdc_df.sort_values(by=['average','Team'],ascending=[True,True])
+        first_five = stdc_df['Team'].unique()[:select_how_many_players]
+        stdc_df = stdc_df[stdc_df['Team'].isin(first_five)].copy()
+        return stdc_df
+
+    # def clean_df_select(stdc_df, select_how_many_players=10):
+    #     slice_df=stdc_df.groupby('Team').tail(1).loc[:,['Team','average']].rename(columns={'average':'last'})
+    #     stdc_df=pd.merge(stdc_df,slice_df,how='left',on='Team').drop('average',axis=1).rename(columns={'last':'average'})
+    #     stdc_df=stdc_df.sort_values(by=['average','Team'],ascending=[True,True])
+    #     first_five = stdc_df['Team'].unique()[:select_how_many_players]
+    #     stdc_df = stdc_df[stdc_df['Team'].isin(first_five)].copy()
+    #     return stdc_df
+
+    # https://stackoverflow.com/questions/31535442/select-multiple-groups-from-pandas-groupby-object
+    stdc_df=clean_df(stdc_df)
+    stdc_df_2=clean_df(stdc_df_2)
+    stdc_df_1=clean_df(stdc_df_1)
+
+    # stdc_df=stdc_df.sort_values(by=['average','Team'],ascending=[True,True])
+    # st.write('stdf df', stdc_df)
+    # first_five = stdc_df['Team'].unique()[:5]
+    # st.write('stdf df', first_five)
+    # stdc_df = stdc_df[stdc_df['Team'].isin(first_five)].copy()
+    # st.write('stdf df', stdc_df)
+    st.write('stdf df 2', stdc_df_2 [stdc_df_2['Team'].str.contains('luke_shaw')] )
+    st.write('stdf df 2', stdc_df_2 [stdc_df_2['Team'].str.contains('gaard')] )
+    # stdc_df_2=clean_df(stdc_df)
+    # st.write('group last', updated_df_merge)
+    my_players_data=stdc_df_1.copy()
+    # def pivot_clean_df(stdc_df)
     stdc_pivot=pd.pivot_table(stdc_df,index='Team', columns='Week')
     stdc_pivot.columns = stdc_pivot.columns.droplevel(0)
+    # return 
     # stdc_df.to_csv('C:/Users/Darragh/Documents/Python/premier_league/fpl_picker_02_01_23.csv')
-    chart_cover= alt.Chart(stdc_df).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
-    alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
-    # https://altair-viz.github.io/gallery/layered_heatmap_text.html
-    # https://vega.github.io/vega/docs/schemes/
-    text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
-    st.altair_chart(chart_cover + text_cover,use_container_width=True)
+    def draw_graph(stdc_df,order_sort='ascending'):
+        chart_cover= alt.Chart(stdc_df).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
+        alt.Y('Team',sort=alt.SortField(field='average', order=order_sort)),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
+        # https://altair-viz.github.io/gallery/layered_heatmap_text.html
+        # https://vega.github.io/vega/docs/schemes/
+        text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
+        return st.altair_chart(chart_cover + text_cover,use_container_width=True)
+    st.write('sorted on expo 4 games')
+    draw_graph(stdc_df_2,order_sort='ascending')
+    st.write('below sorted on average 4 games')
+    draw_graph(stdc_df)
+    st.write('below sorted on average of all games')
+    draw_graph(stdc_df_1)
 
 with st.expander('GW Graph with My Players'):
     my_players=['eddie_nketiah','kevin_de bruyne','harry_kane','erling_haaland',
     'marcus_rashford','manuel_akanji','kepa_arrizabalaga','miguel_almirón rejala','fabian_schär','ben_davies','andreas_pereira','william_saliba','trevoh_chalobah']
 
+    def clean_alt(stdc_df):
+        slice_df=stdc_df.groupby('Team').tail(1).loc[:,['Team','average']].rename(columns={'average':'last'})
+        stdc_df=pd.merge(stdc_df,slice_df,how='left',on='Team').drop('average',axis=1).rename(columns={'last':'average'})
+        stdc_df=stdc_df.sort_values(by=['average','Team'],ascending=[True,True])
+        return stdc_df
+    stdc_my_players=clean_alt(stdc_my_players)
     # st.write(my_players_data)
-    stdc_df=my_players_data[my_players_data['Team'].isin(my_players)]
+    stdc_df=stdc_my_players[stdc_my_players['Team'].isin(my_players)]
+    # st.write('st', stdc_df)
     chart_cover= alt.Chart(stdc_df).mark_rect().encode(alt.X('Week:O',axis=alt.Axis(title='Week',labelAngle=0)),
     alt.Y('Team',sort=alt.SortField(field='average', order='ascending')),color=alt.Color('cover:Q',scale=alt.Scale(scheme='redyellowgreen')))
     # https://altair-viz.github.io/gallery/layered_heatmap_text.html
     # https://vega.github.io/vega/docs/schemes/
     text_cover=chart_cover.mark_text().encode(text=alt.Text('cover:N'),color=alt.value('white'))
+    st.write('sorted on basis of expo 4 games')
     st.altair_chart(chart_cover + text_cover,use_container_width=True)
 
 # with st.expander('Optimisation'):
