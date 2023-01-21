@@ -20,7 +20,7 @@ current_year=2022
 min_games_played_for_calc=1
 
 future_gameweek=current_week+1
-current_week=19
+current_week=20
 current_year=2023
 
 with st.expander('Data Prep'):
@@ -195,6 +195,7 @@ with st.expander('Data Prep'):
     full_df.loc [ (full_df['full_name']=='josé diogo_dalot teixeira'), 'full_name' ] = 'diogo_dalot teixeira'
     full_df.loc [ (full_df['full_name']=='miguel_almirón'), 'full_name' ] = 'miguel_almirón rejala'
     full_df.loc [ (full_df['full_name']=='aleksandar_mitrovic'), 'full_name' ] = 'aleksandar_mitrović'
+    full_df.loc [ (full_df['full_name']=='andreas_pereira'), 'full_name' ] = 'andreas_hoelgebaum pereira'
     # st.write('whwere is chil', full_df[full_df['full_name'].str.contains('martinel')])
 
     # d_1=pd.read_html('https://fbref.com/en/squads/18bb7c10/Arsenal-Stats')[0]
@@ -555,7 +556,7 @@ with st.expander('To run the GW analysis'):
             latest_df = rank_total_calc(latest_df)
 
             cols_to_move=['full_name','Position','Price','team','week','year','games_2022_rolling','minutes','Clean_Pts','totals_ranked','total_sum_rank',
-            'ppg_38_rank','ppg_19_rank','ppg_19_xP_rank','value_rank','net_transfers_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
+            'value_rank','net_transfers_rank','Weighted_ma_AB_4_rank','ppg_38_rank','ppg_19_rank','ppg_19_xP_rank','last_38_ppg','value_ppg','selected_rank','transfers_balance',
             'last_76_ppg','last_19_ppg','games_total','last_38_games','selected']
             cols = cols_to_move + [col for col in latest_df if col not in cols_to_move]
             latest_df=((latest_df[cols].sort_values(by=['totals_ranked'],ascending=True)))
@@ -603,6 +604,12 @@ with st.expander('Analyse GW data Player Level'):
     # st.write(player_selected_detail_by_week.set_index('week').style.format(format_mapping))
     st.write(player_selected_detail_by_week.style.format(format_mapping))
     # st.write(data)
+    # player_names_pick=player_detail_data['week'].unique()
+    names_selected_pick = st.number_input('Select week',min_value=1,max_value=current_week,value=current_week, key='week')
+    player_selected_detail_by_week = (player_detail_data[player_detail_data['week']==names_selected_pick]).drop('Unnamed: 0',axis=1)
+    # st.write(player_selected_detail_by_week.set_index('week').style.format(format_mapping))
+    st.write(player_selected_detail_by_week.style.format(format_mapping))
+
     
 with st.expander('Graph GW data'):
     # st.write('data ok beg', data)
@@ -892,8 +899,8 @@ with st.expander('GW Graph with Latest Transfers'):
     # st.write('stdf df', first_five)
     # stdc_df = stdc_df[stdc_df['Team'].isin(first_five)].copy()
     # st.write('stdf df', stdc_df)
-    st.write('stdf df 2', stdc_df_2 [stdc_df_2['Team'].str.contains('luke_shaw')] )
-    st.write('stdf df 2', stdc_df_2 [stdc_df_2['Team'].str.contains('gaard')] )
+    # st.write('stdf df 2', stdc_df_2 [stdc_df_2['Team'].str.contains('luke_shaw')] )
+    # st.write('stdf df 2', stdc_df_2 [stdc_df_2['Team'].str.contains('gaard')] )
     # stdc_df_2=clean_df(stdc_df)
     # st.write('group last', updated_df_merge)
     my_players_data=stdc_df_1.copy()
@@ -918,7 +925,8 @@ with st.expander('GW Graph with Latest Transfers'):
 
 with st.expander('GW Graph with My Players'):
     my_players=['eddie_nketiah','kevin_de bruyne','harry_kane','erling_haaland',
-    'marcus_rashford','manuel_akanji','kepa_arrizabalaga','miguel_almirón rejala','fabian_schär','ben_davies','andreas_pereira','william_saliba','trevoh_chalobah']
+    'marcus_rashford','manuel_akanji','kepa_arrizabalaga','miguel_almirón rejala','fabian_schär','luke_shaw','andreas_hoelgebaum pereira',
+    'william_saliba','trevoh_chalobah']
 
     def clean_alt(stdc_df):
         slice_df=stdc_df.groupby('Team').tail(1).loc[:,['Team','average']].rename(columns={'average':'last'})
