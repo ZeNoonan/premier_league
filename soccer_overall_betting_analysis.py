@@ -87,11 +87,24 @@ def graph_pl(decile_df_abs_home_1,column):
     # lines = line_cover.mark_line().encode(size=alt.condition(~highlight, alt.value(1), alt.value(3)))
     return st.altair_chart(line_cover+vline ,use_container_width=True)
 
+def graph_pl_2(source):
+    selection = alt.selection_multi(fields=['season'], bind='legend')
+
+    return st.altair_chart( alt.Chart(source).mark_line().encode(
+        alt.X('Week:O'),
+        alt.Y('cum_result'),
+        alt.Color('season:N'),
+        opacity=alt.condition(selection, alt.value(1), alt.value(0.2))).add_selection(selection))
+
 graph_pl(df_pivot_3_betting,column='cum_result')
 st.write('graph_df_pivot_2_betting', graph_df_pivot_2_betting)
 graph_pl(graph_df_pivot_2_betting,column='cum_result')
-graph_pl_1(graph_df_pivot_2_betting,column='cum_result')
 
+# st.write('Graph of where line is highlighted')
+# graph_pl_1(graph_df_pivot_2_betting,column='cum_result')
+
+st.write('Graph of where legend highlights line')
+graph_pl_2(graph_df_pivot_2_betting)
 
 
 df_pivot.loc[('% Winning',2022)] = (df_pivot.loc[('Winning_Bets',2022)] / (df_pivot.loc[('Winning_Bets',2022)]+df_pivot.loc[('Losing_Bets',2022)])  )
