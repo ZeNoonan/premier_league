@@ -42,8 +42,8 @@ season_list={'season_2022': {
 # test_3.to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_odds_2021_2022.csv')
 
 with st.expander('df'):
-    # dfa=pd.read_html('https://fbref.com/en/comps/20/11593/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
-    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
+    dfa=pd.read_html('https://fbref.com/en/comps/20/2022-2023/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
+    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
     
     @st.cache
     def read_csv_data(file):
