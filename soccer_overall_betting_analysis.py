@@ -89,12 +89,21 @@ def graph_pl(decile_df_abs_home_1,column):
 
 def graph_pl_2(source):
     selection = alt.selection_multi(fields=['season'], bind='legend')
-
     return st.altair_chart( alt.Chart(source).mark_line().encode(
         alt.X('Week:O'),
         alt.Y('cum_result'),
         alt.Color('season:N'),
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2))).add_selection(selection))
+
+def graph_pl_3(source):
+    highlight = alt.selection(type='single', on='mouseover', fields=['season'], nearest=True, bind='legend')
+    selection = alt.selection_multi(fields=['season'], bind='legend', on='mouseover')
+    base = alt.Chart(source).encode(x='Week:O',y='cum_result',color='season:N',tooltip=['season'])
+    points = base.mark_circle().encode(opacity=alt.value(0.01)).add_selection(highlight).properties(width=1200)
+    lines = base.mark_line().encode(
+        opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),size=alt.condition(~highlight, alt.value(1), alt.value(3))).add_selection(selection)
+    return st.altair_chart (points + lines, use_container_width=True)
+
 
 graph_pl(df_pivot_3_betting,column='cum_result')
 st.write('graph_df_pivot_2_betting', graph_df_pivot_2_betting)
@@ -105,6 +114,7 @@ graph_pl(graph_df_pivot_2_betting,column='cum_result')
 
 st.write('Graph of where legend highlights line')
 graph_pl_2(graph_df_pivot_2_betting)
+graph_pl_3(graph_df_pivot_2_betting)
 
 
 df_pivot.loc[('% Winning',2022)] = (df_pivot.loc[('Winning_Bets',2022)] / (df_pivot.loc[('Winning_Bets',2022)]+df_pivot.loc[('Losing_Bets',2022)])  )
