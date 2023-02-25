@@ -20,7 +20,7 @@ current_year=2022
 min_games_played_for_calc=1
 
 future_gameweek=current_week+1
-current_week=20
+current_week=23
 current_year=2023
 
 with st.expander('Data Prep'):
@@ -93,7 +93,7 @@ with st.expander('Data Prep'):
     df_week_data_raw_2020 = read_data(file_location_2020,col_selection_week_2020)
     df_week_data_raw_2019 = read_data(file_location_2019,col_selection_week_2020)
     df_week_data_raw_2018 = read_data(file_location_2018,col_selection_week_2020)
-    # st.write(df_week_data_raw_2022[df_week_data_raw_2022['player_id']==359])
+    st.write('raw week 2023',df_week_data_raw_2023[df_week_data_raw_2023['player_id']==359])
 
     @st.cache
     def prep_base_data(url_csv, pick):
@@ -124,6 +124,7 @@ with st.expander('Data Prep'):
         return pd.concat([url_pick2020,gw_18_blank,gw_28_blank,gw_28_blank_1])    
 
     data_2023 = (( (prep_base_data(url_csv_2023, df_week_data_raw_2023))))
+    # st.write('looks like this after merge', data_2023[data_2023['second_name']=='Isak'])
     data_2022 = (( (prep_base_data(url_csv_2022, df_week_data_raw_2022))))
     data_2021 = (( (prep_base_data(url_csv_2021, df_week_data_raw_2021))))
     data_2020 = (( (prep_base_data(url_csv_2020, df_week_data_raw_2020)))).copy()
@@ -168,7 +169,7 @@ with st.expander('Data Prep'):
     full_df = combine_dataframes_new(data_2023,data_2022,data_2021,data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
     # full_df = combine_dataframes_historical(data_2020,data_2019,data_2018).drop(['fixture','round'],axis=1).copy()
 
-    # st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
+    # st.write('this is isak df',full_df[full_df['full_name'].str.contains('isak')])
     # st.write(data_2021.head())
     # st.write(data_2020[data_2020['full_name'].str.contains('salah')])
 
@@ -233,16 +234,16 @@ with st.expander('Data Prep'):
     full_combined_df=full_combined_df [(full_combined_df['full_name']!='opponent_total')]
     full_combined_df['xg_xa_per_match']=(full_combined_df['Expected_xG']+full_combined_df['Expected_xA']) / full_combined_df['matches_played']
     full_combined_df['week']=current_week
-    st.write('combined xg',full_combined_df[full_combined_df['full_name'].str.contains('neal')])
-    st.write('full df', full_df[full_df['full_name'].str.contains('neal')])
+    # st.write('combined xg',full_combined_df[full_combined_df['full_name'].str.contains('neal')])
+    # st.write('full df line 238 Isak', full_df[full_df['full_name'].str.contains('isak')])
 
     test_df_xg=pd.merge(full_combined_df,full_df,on=['full_name','week'],how='left')
-    st.write('test merge', test_df_xg[test_df_xg['full_name'].str.contains('neal')])
+    # st.write('test merge', test_df_xg[test_df_xg['full_name'].str.contains('isak')])
     full_df=column_calcs_1(full_df)
     df=full_df.reset_index().rename(columns={'index':'id_merge'})
     # st.write('full df z', df[ (df['year']==2022) & (df['week']==3) ].sort_values(by='week_points',ascending=False))
     df=df.sort_values(by=['full_name','year','week'],ascending=True)
-    st.write('sort', df)
+    # st.write('sort isak line 246', df[df['full_name'].str.contains('isak')])
 
     @st.cache(suppress_st_warning=True)
     def column_calcs_2(df):
@@ -274,14 +275,17 @@ with st.expander('Data Prep'):
 
 
         df_calc['games_2022_rolling']=df_calc.groupby(['full_name'])['games_2022'].cumsum()
-
+        # st.write('isak line 278 within the function',df_calc[df_calc['full_name'].str.contains('isak')])
         df=pd.merge(df,df_calc,how='outer')
+        # st.write('isak line 280 within the function',df[df['full_name'].str.contains('isak')])
         df['last_76_ppg']=df['last_76_ppg'].fillna(method='ffill')
         df['last_76_games']=df['last_76_games'].fillna(method='ffill')
         df['last_38_ppg']=df['last_38_ppg'].fillna(method='ffill')
         df['expo']=df['expo'].fillna(method='ffill')
         # df['Weighted_ma_AB_4']=df['Weighted_ma_AB_4'].fillna(method='ffill')
-        df=df.dropna(subset=['Weighted_ma_AB_4'])
+        # st.write('isak line 286 think the issue is AFTER within the function',df[df['full_name'].str.contains('isak')])
+        # df=df.dropna(subset=['Weighted_ma_AB_4']) # THIS CAUSED ISSUES SHOULD I LEAVE IN OR TAKE OUT
+        # st.write('isak line 288 think the issue is before within the function',df[df['full_name'].str.contains('isak')])
         df['last_38_xP_ppg']=df['last_38_xP_ppg'].fillna(method='ffill')
         df['last_38_games']=df['last_38_games'].fillna(method='ffill')
         df['last_19_ppg']=df['last_19_ppg'].fillna(method='ffill')
@@ -291,6 +295,7 @@ with st.expander('Data Prep'):
         df['games_2022_rolling']=df['games_2022_rolling'].fillna(method='ffill')
 
         df['games_total'] = df.groupby (['full_name'])['Game_1'].transform('sum')
+        st.write('isak line 296 within the function',df[df['full_name'].str.contains('isak')])
         return df
 
 
@@ -305,9 +310,9 @@ with st.expander('Data Prep'):
 
 
     full_df=full_df.drop(['first_name','second_name'],axis=1).reset_index().drop('index',axis=1)
-    # st.write('check this full df chillwell row 213',full_df[full_df['full_name'].str.contains('chilwell')])
+    st.write('check this full df isak row 309',full_df[full_df['full_name'].str.contains('isak')])
     full_df=column_calcs_2(full_df).drop(['value','week_points'],axis=1)
-    # st.write('check this full df chillwell 215',full_df[full_df['full_name'].str.contains('chilwell')])
+    st.write('check this full df isak 311',full_df[full_df['full_name'].str.contains('isak')])
     # st.write('check this full df',full_df[full_df['full_name'].str.contains('kane')])
 
     # cols_to_move=['full_name','Position','Price','team','week','year','minutes','Clean_Pts','last_76_ppg','last_38_ppg','games_total',
@@ -332,12 +337,12 @@ with st.expander('Data Prep'):
     'value_ppg':"{:,.0f}",'value_rank':"{:,.0f}",'selected_rank':"{:,.0f}",'transfers_balance':"{:,.0f}",'ppg_19_xP_rank':"{:,.0f}",
     'net_transfers_rank':"{:,.0f}",'totals_ranked':"{:,.0f}",'ppg_38_rank':"{:,.0f}",'ppg_19_rank':"{:,.0f}",'ppg_38_xP_rank':"{:,.0f}",
     'year':"{:,.0f}",'totals_ranked':"{:,.0f}",'expo_rank':"{:,.0f}",'%_selected':"{:,.2f}",'Weighted_ma_AB_4':"{:,.1f}",'Weighted_ma_AB_4_rank':"{:,.0f}"}
-    # st.write('this is mitro df',full_df[full_df['full_name'].str.contains('mitro')])
+    st.write('this is isak df',full_df[full_df['full_name'].str.contains('isak')])
 
 with st.expander('Player Detail by Week'):
     player_names_pick=full_df['full_name'].unique()
     # st.write('player', player_names_pick)
-    names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=370)
+    names_selected_pick = st.selectbox('Select players',player_names_pick, key='player_pick',index=371)
     player_selected_detail_by_week = full_df[full_df['full_name']==names_selected_pick]
     st.write(player_selected_detail_by_week.sort_values(by=['year','week']).style.format(format_mapping))
 
@@ -372,10 +377,10 @@ with st.expander('Player Stats Latest'):
         x['total_selected']=9000000
         x['%_selected']=x['selected'] / x['total_selected']
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
-        # x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
+        x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
         # x['value_ppg']=x['expo']/(x['%_selected']+0.5)
         # 'Weighted_ma_AB_4'
-        x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
+        # x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected'])
         x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
         x['selected_rank']=x.loc[:,['%_selected']].rank(method='dense', ascending=False)
@@ -506,10 +511,10 @@ with st.expander('To run the GW analysis'):
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.75)
                 # x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
-                # x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
+                x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
                 # x['value_ppg']=x['expo']/(x['%_selected']+0.5)
                 # Weighted_ma_AB_4
-                x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
+                # x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.25) # still doesnt look right
                 # x['value_ppg']=x['last_76_ppg']/(x['%_selected']) # this definitely doesn't work, crazy results
                 x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
@@ -777,10 +782,10 @@ with st.expander('GW Detail with Latest Transfers'):
         x['%_selected']=x['selected'] / x['total_selected']
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+1)
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.75)
-        # x['value_ppg']=x['last_38_ppg']/(x['%_selected']+0.5)
+        x['value_ppg']=x['last_19_ppg']/(x['%_selected']+0.5)
         # x['value_ppg']=x['expo']/(x['%_selected']+0.5)
         # Weighted_ma_AB_4
-        x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
+        # x['value_ppg']=x['Weighted_ma_AB_4']/(x['%_selected']+0.5)
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']+0.25) # still doesnt look right
         # x['value_ppg']=x['last_76_ppg']/(x['%_selected']) # this definitely doesn't work, crazy results
         x['value_rank']=x.loc[:,['value_ppg']].rank(method='dense', ascending=False)
@@ -891,6 +896,7 @@ with st.expander('GW Graph with Latest Transfers'):
     # https://stackoverflow.com/questions/31535442/select-multiple-groups-from-pandas-groupby-object
     stdc_df=clean_df(stdc_df)
     stdc_df_2=clean_df(stdc_df_2)
+    stdc_df_5=clean_df(stdc_df_1,select_how_many_players=100)
     stdc_df_1=clean_df(stdc_df_1)
 
     # stdc_df=stdc_df.sort_values(by=['average','Team'],ascending=[True,True])
@@ -922,11 +928,13 @@ with st.expander('GW Graph with Latest Transfers'):
     draw_graph(stdc_df)
     st.write('below sorted on average of all games')
     draw_graph(stdc_df_1)
+    
+    draw_graph(stdc_df_5)
 
 with st.expander('GW Graph with My Players'):
-    my_players=['eddie_nketiah','kevin_de bruyne','harry_kane','erling_haaland',
-    'marcus_rashford','manuel_akanji','kepa_arrizabalaga','miguel_almirón rejala','fabian_schär','luke_shaw','andreas_hoelgebaum pereira',
-    'william_saliba','trevoh_chalobah']
+    my_players=['eddie_nketiah','kaoru_mitoma','harry_kane','erling_haaland',
+    'marcus_rashford','manuel_akanji','kepa_arrizabalaga','solly_march','fabian_schär','luke_shaw','andreas_hoelgebaum pereira',
+    'william_saliba','trevoh_chalobah','bruno_borges fernandes']
 
     def clean_alt(stdc_df):
         slice_df=stdc_df.groupby('Team').tail(1).loc[:,['Team','average']].rename(columns={'average':'last'})
