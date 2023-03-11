@@ -42,8 +42,8 @@ season_list={'season_2022': {
 # test_3.to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_odds_2021_2022.csv')
 
 with st.expander('df'):
-    dfa=pd.read_html('https://fbref.com/en/comps/20/2022-2023/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
-    dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
+    # dfa=pd.read_html('https://fbref.com/en/comps/20/2022-2023/schedule/2022-2023-Bundesliga-Scores-and-Fixtures')
+    # dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/bundesliga_scores_2022_2023.csv')
     
     @st.cache
     def read_csv_data(file):
@@ -535,7 +535,7 @@ with placeholder_2.expander('Betting Slip Matches'):
     presentation_betting_matches=betting_matches.copy()
 
     # https://towardsdatascience.com/7-reasons-why-you-should-use-the-streamlit-aggrid-component-2d9a2b6e32f0
-    grid_height = st.number_input("Grid height", min_value=400, value=5950, step=100)
+    grid_height = st.number_input("Grid height", min_value=400, value=6950, step=100)
     gb = GridOptionsBuilder.from_dataframe(presentation_betting_matches)
     gb.configure_column("Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2, aggFunc='sum')
     gb.configure_column("Opening Spread", type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2, aggFunc='sum')
