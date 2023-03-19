@@ -17,10 +17,10 @@ future_gameweek=39
 current_week=38
 current_year=2022
 
-min_games_played_for_calc=1
+min_games_played_for_calc=3
 
 future_gameweek=current_week+1
-current_week=23
+current_week=28
 current_year=2023
 
 with st.expander('Data Prep'):
@@ -72,6 +72,8 @@ with st.expander('Data Prep'):
     'value','week','year']
     col_selection_week_2020=['bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
     'value','week','year','round','fixture']
+    col_selection_week_2023=['team','bps','bonus','player_id','ict_index','minutes','opponent_team','selected','total_points','transfers_in','transfers_out',
+    'value','week','year','expected_assists','expected_goal_involvements','expected_goals','expected_goals_conceded']
     url_csv_2023=read_data(url2023,col_selection_url)
     url_csv_2022=read_data(url2022,col_selection_url)
     url_csv_2021=read_data(url2021,col_selection_url)
@@ -86,14 +88,14 @@ with st.expander('Data Prep'):
 
     # url_csv_2020=data_2020_team_names((read_data(url2020,col_selection_url_2020).copy()))
     # st.write('master data 2020',url_csv_2020.head())
-    df_week_data_raw_2023 = read_data(file_location_2023,col_selection_week)
+    df_week_data_raw_2023 = read_data(file_location_2023,col_selection_week_2023)
     df_week_data_raw_2022 = read_data(file_location_2022,col_selection_week)
     df_week_data_raw_2021 = read_data(file_location_2021,col_selection_week)
     # st.write('2020 raw data weekly',pd.read_csv(file_location_2020).head())
     df_week_data_raw_2020 = read_data(file_location_2020,col_selection_week_2020)
     df_week_data_raw_2019 = read_data(file_location_2019,col_selection_week_2020)
     df_week_data_raw_2018 = read_data(file_location_2018,col_selection_week_2020)
-    st.write('raw week 2023',df_week_data_raw_2023[df_week_data_raw_2023['player_id']==359])
+    st.write('raw week 2023',df_week_data_raw_2023[df_week_data_raw_2023['player_id']==283])
 
     @st.cache
     def prep_base_data(url_csv, pick):
@@ -877,7 +879,7 @@ with st.expander('GW Graph with Latest Transfers'):
         .apply(lambda x: np.sum(weights_1*x) / sum_weights_1, raw=False))
     # st.write('stdf df', stdc_df [stdc_df['Team'].str.contains('luke_shaw')] )
     stdc_my_players=stdc_df_2.copy()
-    def clean_df(stdc_df, select_how_many_players=10):
+    def clean_df(stdc_df, select_how_many_players=30):
         slice_df=stdc_df.groupby('Team').tail(1).loc[:,['Team','average']].rename(columns={'average':'last'})
         stdc_df=pd.merge(stdc_df,slice_df,how='left',on='Team').drop('average',axis=1).rename(columns={'last':'average'})
         stdc_df=stdc_df.sort_values(by=['average','Team'],ascending=[True,True])
