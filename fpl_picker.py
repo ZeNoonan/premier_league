@@ -20,7 +20,7 @@ current_year=2022
 min_games_played_for_calc=3
 
 future_gameweek=current_week+1
-current_week=28
+current_week=35
 current_year=2023
 
 with st.expander('Data Prep'):
@@ -407,7 +407,7 @@ with st.expander('Player Stats Latest'):
     def rank_total_calc(x):
         # col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
         # col_list_1=['expo_rank','value_rank','net_transfers_rank']
-        col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank']
+        col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank','ppg_38_rank']
         # col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
@@ -551,7 +551,7 @@ with st.expander('To run the GW analysis'):
                 # col_list_1=['ppg_38_rank','ppg_19_rank','value_rank','net_transfers_rank']
                 # col_list_1=['expo_rank','value_rank','net_transfers_rank']
                 # Weighted_ma_AB_4
-                col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank']
+                col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank','ppg_38_rank']
                 # col_list_1=['ppg_19_rank','value_rank','net_transfers_rank']
                 x['total_sum_rank']=x[col_list_1].sum(axis=1)
                 x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
@@ -804,7 +804,7 @@ with st.expander('GW Detail with Latest Transfers'):
         # col_list_1=['ppg_19_rank','ppg_38_rank','value_rank','net_transfers_rank']
         # col_list_1=['expo_rank','value_rank','net_transfers_rank']
         # Weighted_ma_AB_4
-        col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank']
+        col_list_1=['Weighted_ma_AB_4_rank','value_rank','net_transfers_rank','ppg_38_rank']
         x['total_sum_rank']=x[col_list_1].sum(axis=1)
         x['totals_ranked']=x.loc[:,['total_sum_rank']].rank(method='dense', ascending=True)
         return x
