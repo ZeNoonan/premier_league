@@ -14,13 +14,13 @@ import os
 st.set_page_config(layout="wide")
 
 future_gameweek=39
-current_week=38
+current_week=37
 current_year=2022
 
 min_games_played_for_calc=3
 
 future_gameweek=current_week+1
-current_week=35
+current_week=38
 current_year=2023
 
 with st.expander('Data Prep'):
