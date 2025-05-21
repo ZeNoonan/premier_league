@@ -5,15 +5,15 @@ import altair as alt
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-# dfa=pd.read_html('https://fbref.com/en/comps/9/2024-2025/schedule/2024-2025-Premier-League-Scores-and-Fixtures')
-# dfa[0].to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_scores_2024_2025.csv')
-# points_table=pd.read_html('https://fbref.com/en/comps/9/Premier-League-Stats')[0]
-# points_table.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_table_2024_2025.csv')
+dfa=pd.read_html('https://fbref.com/en/comps/9/2024-2025/schedule/2024-2025-Premier-League-Scores-and-Fixtures')
+dfa[0].to_csv('C:/Users/Darragh/Documents/Python/soccer/premier_league_scores_2024_2025.csv')
+points_table=pd.read_html('https://fbref.com/en/comps/9/Premier-League-Stats')[0]
+points_table.to_csv('C:/Users/Darragh/Documents/Python/soccer/premier_league_table_2024_2025.csv')
 
-df=pd.read_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_scores_2024_2025.csv',parse_dates=['Date'])
+df=pd.read_csv('C:/Users/Darragh/Documents/Python/soccer/premier_league_scores_2024_2025.csv',parse_dates=['Date'])
 
-odds=pd.read_excel('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2024_2025.xlsx')
-odds_csv=odds.to_csv('C:/Users/Darragh/Documents/Python/premier_league/premier_league_odds_2024_2025.csv')
+odds=pd.read_excel('C:/Users/Darragh/Documents/Python/soccer/premier_league_odds_2024_2025.xlsx')
+odds_csv=odds.to_csv('C:/Users/Darragh/Documents/Python/soccer/premier_league_odds_2024_2025.csv')
 odds=odds.rename(columns={'Home Team':'Home','Away Team':'Away'})
 # st.write(odds.head())
 
@@ -35,8 +35,8 @@ merged_df['Home Points'] = [str(x)[0] for x in merged_df['Score']]
 merged_df['Away Points'] = [str(x)[2] for x in merged_df['Score']]
 merged_df['home_spread']=merged_df['Spread']
 merged_df['away_spread']=-merged_df['Spread']
-merged_df['Home Points']=merged_df['Home Points'].replace({'n':np.NaN})
-merged_df['Away Points']=merged_df['Away Points'].replace({'n':np.NaN})
+merged_df['Home Points']=merged_df['Home Points'].replace({'n':np.nan})
+merged_df['Away Points']=merged_df['Away Points'].replace({'n':np.nan})
 merged_df['Home Points']=pd.to_numeric(merged_df['Home Points'])
 merged_df['Away Points']=pd.to_numeric(merged_df['Away Points'])
 merged_df['Home_Total_Points'] = (merged_df['Closing_Total']-merged_df['Spread'] )/2
